@@ -1,0 +1,10 @@
+# name: today
+# key: today
+# --
+* `(format-time-string "%Y-%m-%d" (current-time))`
+** IT Support
+*** $0Day Planning
+
+** BackOffice Workstream
+
+** Lunch :NOBILL:
