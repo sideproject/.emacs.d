@@ -44,19 +44,19 @@
 (require 'package)
 ;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
 
+;;http://stackoverflow.com/questions/1664202/emacs-lisp-evaluate-variable-in-alist
 (let ((melpa-priority
-	  (if (string-equal system-type "gnu/linux")
-		  0
-		100)))
-		
-	  (setq package-archives
+	   (cond ((string-equal system-type "windows-nt") 100)
+			(t 0))))
+	  		
+(setq package-archives
       '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
         ("MELPA Stable" . "https://stable.melpa.org/packages/")
         ("MELPA"        . "https://melpa.org/packages/"))
       package-archive-priorities
       '(("MELPA Stable" . 10)
         ("GNU ELPA"     . 5)
-        ("MELPA"        . melpa-priority))))
+        `("MELPA"        . ,melpa-priority))))
    
 ;;(setq package-enable-at-startup nil) ;;do we need this?
 (package-initialize)
