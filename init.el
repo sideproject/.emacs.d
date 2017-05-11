@@ -45,6 +45,7 @@
 ;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
 
 ;;http://stackoverflow.com/questions/1664202/emacs-lisp-evaluate-variable-in-alist
+;;use MELPA on windows to get latest but stay on MELPA-STABLE on arch-linux since latest omnisharp requires dotnet which i can't get to work yet.
 (let ((melpa-priority
 	   (cond ((string-equal system-type "windows-nt") 100)
 			(t 0))))
@@ -380,22 +381,24 @@ If point was already at that position, move point to beginning of line."
 (use-package multiple-cursors
   :ensure t)
 
-(when (string-equal system-type "gnu/linux")
-  (use-package omnisharp
-	:ensure t
-	:config
+(use-package omnisharp
+  :ensure t
+  :config
 
-	(setq omnisharp-debug t)
-	;;(setq omnisharp--curl-executable-path "U:/bin/gnu/curl.EXE")
+  (setq omnisharp-debug t)
+
+  ;;use older with linux (arch) uses MONO -- unable to get dotnet working on arch yet.
+  (when (string-equal system-type "gnu/linux")
 	(setq omnisharp--curl-executable-path "/usr/bin/curl")
-	;;(setq omnisharp-server-executable-path "C:/Users/cbean/Desktop/omnisharp-win-x64-netcoreapp1.1/OmniSharp.exe")
-	;;(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp")
-	(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp.exe")
-	
-	;;(require 'omnisharp-utils)
-	;;(require 'omnisharp-server-management)
-	;;(require 'shut-up))
-	))
+	(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp.exe"))
+  
+  ;;use latest MELPA with windows -- uses dotnet
+  (when (string-equal system-type "windows-nt")
+	(setq omnisharp--curl-executable-path "U:/bin/gnu/curl.EXE")
+	(setq omnisharp-server-executable-path "C:/Users/cbean/Desktop/omnisharp-win-x64-netcoreapp1.1/OmniSharp.exe")
+	(require 'omnisharp-utils)
+	(require 'omnisharp-server-management)
+	(require 'shut-up)))
 
 (use-package powershell
   :ensure t
