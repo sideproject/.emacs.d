@@ -332,7 +332,7 @@ If point was already at that position, move point to beginning of line."
   :defer t
   :init
   (when (string-equal system-type "windows-nt")
-	((setq )etq tramp-default-method "plink")))
+	(setq tramp-default-method "plink")))
 
 (use-package selected
   ;:defer t 
