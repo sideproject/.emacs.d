@@ -57,7 +57,7 @@
       package-archive-priorities
       '(("MELPA Stable" . 10)
         ("GNU ELPA"     . 5)
-        `("MELPA"        . ,melpa-priority))))
+        `("MELPA"       . ,melpa-priority))))
    
 ;;(setq package-enable-at-startup nil) ;;do we need this?
 (package-initialize)
