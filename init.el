@@ -11,7 +11,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(omnisharp smex dumb-jump expand-region magit projectile ag company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(omnisharp smex dumb-jump expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -48,17 +48,17 @@
 ;;use MELPA on windows to get latest but stay on MELPA-STABLE on arch-linux since latest omnisharp requires dotnet which i can't get to work yet.
 (let ((melpa-priority
 	   (cond ((string-equal system-type "windows-nt") 100)
-			(t 0))))
-	  		
-(setq package-archives
-      '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-        ("MELPA Stable" . "https://stable.melpa.org/packages/")
-        ("MELPA"        . "https://melpa.org/packages/"))
-      package-archive-priorities
-      '(("MELPA Stable" . 10)
-        ("GNU ELPA"     . 5)
-        `("MELPA"       . ,melpa-priority))))
-   
+			 (t 0))))
+  
+  (setq package-archives
+		'(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+		  ("MELPA Stable" . "https://stable.melpa.org/packages/")
+		  ("MELPA"        . "https://melpa.org/packages/"))
+		package-archive-priorities
+		'(("MELPA Stable" . 10)
+		  ("GNU ELPA"     . 5)
+		  `("MELPA"       . ,melpa-priority))))
+
 ;;(setq package-enable-at-startup nil) ;;do we need this?
 (package-initialize)
 
@@ -155,7 +155,7 @@
 (setq hippie-expand-try-functions-list '(try-expand-dabbrev
                                          try-expand-dabbrev-all-buffers
                                          try-expand-dabbrev-from-kill
-                                          try-complete-file-name-partially
+										 try-complete-file-name-partially
                                          try-complete-file-name
                                          try-expand-all-abbrevs
                                          try-expand-list
@@ -336,8 +336,8 @@ If point was already at that position, move point to beginning of line."
 	(setq tramp-default-method "plink")))
 
 (use-package selected
-  ;:defer t 
-  ;:commands selected-minor-mode
+										;:defer t 
+										;:commands selected-minor-mode
   :diminish selected-minor-mode
   :config
   (setq selected-org-mode-map (make-sparse-keymap))
@@ -381,33 +381,29 @@ If point was already at that position, move point to beginning of line."
 (use-package multiple-cursors
   :ensure t)
 
-(use-package omnisharp
-  :ensure t
-  :config
+;; (use-package omnisharp
+;;   :ensure t
+;;   :config
 
-  (setq omnisharp-debug t)
+;;   (setq omnisharp-debug t)
 
-  ;;use older with linux (arch) uses MONO -- unable to get dotnet working on arch yet.
-  (when (string-equal system-type "gnu/linux")
-	(setq omnisharp--curl-executable-path "/usr/bin/curl")
-	(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp.exe"))
-  
-  ;;use latest MELPA with windows -- uses dotnet
-  (when (string-equal system-type "windows-nt")
-	(setq omnisharp--curl-executable-path "U:/bin/gnu/curl.EXE")
-	(setq omnisharp-server-executable-path "C:/Users/cbean/Desktop/omnisharp-win-x64-netcoreapp1.1/OmniSharp.exe")
-	(require 'omnisharp-utils)
-	(require 'omnisharp-server-management)
-	(require 'shut-up)))
+;;   ;;use older with linux (arch) uses MONO -- unable to get dotnet working on arch yet.
+;;   (when (string-equal system-type "gnu/linux")
+;; 	(setq omnisharp--curl-executable-path "/usr/bin/curl")
+;; 	(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp.exe"))
+
+;;   ;;use latest MELPA with windows -- uses dotnet
+;;   (when (string-equal system-type "windows-nt")
+;; 	(setq omnisharp--curl-executable-path "U:/bin/gnu/curl.EXE")
+;; 	(setq omnisharp-server-executable-path "C:/Users/cbean/Desktop/omnisharp-win-x64-netcoreapp1.1/OmniSharp.exe")
+;; 	(require 'omnisharp-utils)
+;; 	(require 'omnisharp-server-management)
+;; 	(require 'shut-up)))
 
 (use-package powershell
   :ensure t
   :defer t
-  ;;:bind ("<f12>" . dumb-jump-go)
-  :config
-  (when (string-equal system-type "gnu/linux")
-	(bind-key "<f12>." 'dumb-jump-go))
-  )
+  :bind ("<f12>" . dumb-jump-go))
 
 (use-package ace-jump-mode
   :ensure t
@@ -426,28 +422,29 @@ If point was already at that position, move point to beginning of line."
 (use-package smex
   :ensure t)
 
-(when (string-equal system-type "gnu/linux")
-  (use-package dumb-jump
-	:ensure t
-	:defer t
-	:config
+(use-package dumb-jump
+  :ensure t
+  :defer t
+  :config
 
-	;;Add Powershell jumping
-	(add-to-list 'dumb-jump-find-rules
-				 '(:type "function" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
-						 :regex "function\\s*JJJ\\s*\\\(?"
-						 :tests ("function test()" "function test ()" "# function Connect-ToServer([Parameter(Mandatory=$true, Position=0)]")))
-	
-	(add-to-list 'dumb-jump-language-file-exts
-				 '(:language "powershell" :ext "ps1" :agtype nil :rgtype nil))
+  ;;Add Powershell jumping
+  (add-to-list 'dumb-jump-find-rules
+			   '(:type "function" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
+					   :regex "function\\s*JJJ\\s*\\\(?"
+					   :tests ("function test()" "function test ()" "# function Connect-ToServer([Parameter(Mandatory=$true, Position=0)]")))
+  
+  (add-to-list 'dumb-jump-language-file-exts
+			   '(:language "powershell" :ext "ps1" :agtype nil :rgtype nil))
 
-	(defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
-	  "Push a mark on the stack before jumping"
-	  (push-mark))
-	
-	;;(print dumb-jump-language-file-exts)
-	;;(print dumb-jump-find-rules)
-	))
+  (defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
+	"Push a mark on the stack before jumping"
+	(push-mark))
+
+  ;;(setq dumb-jump-debug t)
+  
+  ;;(print dumb-jump-language-file-exts)
+  ;;(print dumb-jump-find-rules)
+  )
 
 (use-package neotree
   :ensure t
@@ -488,30 +485,27 @@ If point was already at that position, move point to beginning of line."
   :config
   ;;https://coderwall.com/p/u-l0ra/ruby-code-folding-in-emacs
   (add-to-list 'hs-special-modes-alist
-    `(ruby-mode
-      ,(rx (or "def" "class" "module" "do" "{" "[")) ; Block start
-      ,(rx (or "}" "]" "end"))                       ; Block end
-      ,(rx (or "#" "=begin"))                        ; Comment start
-      ruby-forward-sexp nil))
+			   `(ruby-mode
+				 ,(rx (or "def" "class" "module" "do" "{" "[")) ; Block start
+				 ,(rx (or "}" "]" "end"))                       ; Block end
+				 ,(rx (or "#" "=begin"))                        ; Comment start
+				 ruby-forward-sexp nil))
   ;; (global-set-key (kbd "C-c h") 'hs-hide-block)
   ;; (global-set-key (kbd "C-c s") 'hs-show-block)
   )
 
+(use-package ag
+  :ensure t)
 
-(when (string-equal system-type "gnu/linux")
+(use-package projectile
+  :ensure t
+  :config (setq projectile-completion-system 'ivy)
+  (projectile-global-mode))
 
+(when (not (string-equal system-type "windows-nt"))
   (use-package magit
 	:ensure t
-	:defer t)
-
-  (use-package ag
-	:ensure t)
-
-  (use-package projectile
-	:ensure t
-	:config (setq projectile-completion-system 'ivy)
-	(projectile-global-mode))
-  )
+	:defer t))
 
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
