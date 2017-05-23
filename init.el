@@ -586,10 +586,10 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "M-b" 'ibuffer)
 
-
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
   (bind-key* "<end>" 'end-of-line)  ; make end do what it's supposed to do
   (setq mac-command-modifier 'meta) ; make cmd do Meta
+  (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
   )
 
