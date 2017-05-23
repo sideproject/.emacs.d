@@ -71,7 +71,7 @@
 	  package-archive-priorities
 	  '(("MELPA Stable" . 10)
 		("GNU ELPA"     . 5)
-		("MELPA"       . 0)))
+		("MELPA"        . 0)))
 
 
 ;;(setq package-enable-at-startup nil) ;;do we need this?
@@ -319,6 +319,7 @@ If point was already at that position, move point to beginning of line."
   :diminish undo-tree-mode
   :config
   (global-undo-tree-mode))
+
 
 ;; (use-package text
 ;;   :defer t
@@ -585,6 +586,12 @@ If point was already at that position, move point to beginning of line."
 		   ("C-u" . uncomment-region))
 
 (bind-key "M-b" 'ibuffer)
+
+;;https://www.emacswiki.org/emacs/ZapUpToChar
+(autoload 'zap-up-to-char "misc"
+  "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
+  'interactive)
+(bind-key "M-z" 'zap-up-to-char)
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
