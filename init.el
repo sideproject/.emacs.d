@@ -11,7 +11,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(omnisharp smex dumb-jump expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(ag omnisharp smex dumb-jump expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -41,30 +41,46 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
+;;macports puts cert.pem in /opt/local
+(when (string-equal system-type "darwin")
+  (require 'gnutls)
+  (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
+
 (require 'package)
 ;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
 
 ;;http://stackoverflow.com/questions/1664202/emacs-lisp-evaluate-variable-in-alist
 ;;use MELPA on windows to get latest but stay on MELPA-STABLE on arch-linux since latest omnisharp requires dotnet which i can't get to work yet.
-(let ((melpa-priority
-	   (cond ((string-equal system-type "windows-nt") 100)
-			 (t 0))))
+;; (let ((melpa-priority
+;; 	   (cond ((string-equal system-type "windows-nt") 100)
+;; 			 (t 0))))
   
-  (setq package-archives
-		'(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-		  ("MELPA Stable" . "https://stable.melpa.org/packages/")
-		  ("MELPA"        . "https://melpa.org/packages/"))
-		package-archive-priorities
-		'(("MELPA Stable" . 10)
-		  ("GNU ELPA"     . 5)
-		  `("MELPA"       . ,melpa-priority))))
+;;   (setq package-archives
+;; 		'(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+;; 		  ("MELPA Stable" . "https://stable.melpa.org/packages/")
+;; 		  ("MELPA"        . "https://melpa.org/packages/"))
+;; 		package-archive-priorities
+;; 		'(("MELPA Stable" . 10)
+;; 		  ("GNU ELPA"     . 5)
+;; 		  `("MELPA"       . ,melpa-priority))))
+
+(setq package-archives
+	  '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+		("MELPA Stable" . "https://stable.melpa.org/packages/")
+		("MELPA"        . "https://melpa.org/packages/"))
+	  package-archive-priorities
+	  '(("MELPA Stable" . 10)
+		("GNU ELPA"     . 5)
+		("MELPA"       . 0)))
+
 
 ;;(setq package-enable-at-startup nil) ;;do we need this?
 (package-initialize)
 
-(add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
-(setq ispell-program-name "aspell")
-;;(setq ispell-personal-dictionary "C:/path/to/your/.ispell") 
+(when (string-equal system-type "windows-nt")
+  (add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
+  ;;(setq ispell-personal-dictionary "C:/path/to/your/.ispell") 
+  (setq ispell-program-name "aspell"))
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -569,3 +585,11 @@ If point was already at that position, move point to beginning of line."
 		   ("C-u" . uncomment-region))
 
 (bind-key "M-b" 'ibuffer)
+
+
+;;Mac specific stuff
+(when (string-equal system-type "darwin")
+  (bind-key* "<end>" 'end-of-line)  ; make end do what it's supposed to do
+  (setq mac-command-modifier 'meta) ; make cmd do Meta
+  )
+
