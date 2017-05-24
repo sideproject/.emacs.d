@@ -579,6 +579,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-c" 'avy-goto-word-1)
 (bind-key "M-C" 'avy-goto-word-1-above)
 (bind-key "M-O" 'ace-window)
+;;(bind-key* "C-l" 'goto-line)
 
 (bind-keys :prefix-map vs-prefix-map
 		   :prefix "C-k"
@@ -588,9 +589,10 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-b" 'ibuffer)
 
 ;;https://www.emacswiki.org/emacs/ZapUpToChar
+;;load the zap-up-to-char function from share/emacs/25.1/lisp/misc.elc
 (autoload 'zap-up-to-char "misc"
-  "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
-  'interactive)
+ "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
+ 'interactive)
 (bind-key "M-z" 'zap-up-to-char)
 
 ;;Mac specific stuff
