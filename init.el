@@ -38,10 +38,15 @@
  ;; If there is more than one, they won't work right.
  '(completions-common-part ((t (:inherit default :foreground "red"))))
  '(diredp-ignored-file-name ((t (:foreground "#bebebe"))) t)
- '(org-clock-overlay ((t (:background "dim gray" :foreground "white")))))
+ '(highlight ((t (:background "#454545" :foreground "#ffffff" :underline nil))))
+ '(org-clock-overlay ((t (:background "dim gray" :foreground "white"))))
+ '(region ((t (:background "#666" :foreground "#f6f3e8"))))
+ '(show-paren-match ((t (:background "gray21")))))
 
-(set-face-attribute 'region nil :background "#666")
-(set-face-attribute 'show-paren-match nil :background "gray21")
+(put 'upcase-region 'disabled nil)
+
+;;(set-face-attribute 'region nil :background "#666")
+;;(set-face-attribute 'show-paren-match nil :background "gray21")
 
 ;;turn off the tool bar
 (tool-bar-mode -1)
@@ -292,14 +297,15 @@ If point was already at that position, move point to beginning of line."
   (interactive)
   (find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/riemann/"))
 
-;; (use-package smex
-;;   :ensure t
-;;   :config
-;;   ;;stolen from emacs-starter-kit
-;;   (setq smex-save-file (concat user-emacs-directory ".smex-items"))
-;;   (smex-initialize)
-;;   (global-set-key (kbd "M-a") 'smex)
-;;   )
+;;https://www.emacswiki.org/emacs/ZapUpToChar
+;;load the zap-up-to-char function from share/emacs/25.1/lisp/misc.elc
+(autoload 'zap-up-to-char "misc"
+ "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
+ 'interactive)
+
+(defun backwards-zap-to-char (char)
+  (interactive "cZap backwards to char: ")
+  (zap-up-to-char -1 char))
 
 (use-package counsel
   :defer t
@@ -337,7 +343,6 @@ If point was already at that position, move point to beginning of line."
   :diminish undo-tree-mode
   :config
   (global-undo-tree-mode))
-
 
 ;; (use-package text
 ;;   :defer t
@@ -456,11 +461,16 @@ If point was already at that position, move point to beginning of line."
 ;;https://github.com/abo-abo/swiper/issues/881
 ;;put most recent commands at the top
 (use-package smex
-  :ensure t)
+  :ensure t
+  ;; :config
+  ;; ;;stolen from emacs-starter-kit
+  ;; (setq smex-save-file (concat user-emacs-directory ".smex-items"))
+  ;; (smex-initialize)
+  ;; (global-set-key (kbd "M-a") 'smex)
+)
 
 (use-package dumb-jump
   :ensure t
-  ;;:defer t
   :config
 
   ;;Add Powershell jumping
@@ -496,25 +506,25 @@ If point was already at that position, move point to beginning of line."
 ;;(load "~/.emacs.d/lisp/org-customizations")
 (use-package org-customizations)
 
-(use-package hydra)
-
-(defhydra hydra-window  (:hint nil)
-  "
+(use-package hydra
+  :config
+  (defhydra hydra-window  (:hint nil)
+	"
    _s_: Shrink (horiz)  _G_: Grow (horiz)  _h_: Split - (horiz)
    _S_: Shrink (vert)   _g_: Grow (vert)   _v_: Split | (vert)
    _x_: Close           _a_: Ace Window 
    _q_: Quit
 "  
-  ("S" shrink-window-horizontally)
-  ("G" enlarge-window-horizontally)
-  ("s" shrink-window)
-  ("g" enlarge-window)
-  ("h" split-window-below)
-  ("v" split-window-right)
-  ("x" delete-window)
-  ("a" ace-window)
-  ("q" nil)
-  )
+	("S" shrink-window-horizontally)
+	("G" enlarge-window-horizontally)
+	("s" shrink-window)
+	("g" enlarge-window)
+	("h" split-window-below)
+	("v" split-window-right)
+	("x" delete-window)
+	("a" ace-window)
+	("q" nil)
+	))
 
 ;;http://irreal.org/blog/?p=3341
 ;; (setq diredp-hide-details-initially-flag nil)
@@ -614,17 +624,9 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "M-b" 'ibuffer)
 
-;;https://www.emacswiki.org/emacs/ZapUpToChar
-;;load the zap-up-to-char function from share/emacs/25.1/lisp/misc.elc
-(autoload 'zap-up-to-char "misc"
- "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
- 'interactive)
 (bind-key "M-z" 'zap-up-to-char)
-
-(defun backwards-zap-to-char (char)
-  (interactive "cZap backwards to char: ")
-  (zap-up-to-char -1 char))
 (bind-key "M-Z" 'backwards-zap-to-char)
+
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
@@ -633,4 +635,4 @@ If point was already at that position, move point to beginning of line."
   (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
   )
 
-(put 'upcase-region 'disabled nil)
+
