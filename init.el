@@ -5,13 +5,25 @@
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (wombat)))
  '(debug-on-error nil)
+ '(ibuffer-formats
+   (quote
+	((mark modified read-only " "
+		   (name 35 35 :left :elide)
+		   " "
+		   (size 9 -1 :right)
+		   " "
+		   (mode 16 16 :left :elide)
+		   " " filename-and-process)
+	 (mark " "
+		   (name 16 -1)
+		   " " filename))))
  '(inhibit-startup-screen t)
  '(org-clock-report-include-clocking-task t)
  '(org-mouse-1-follows-link nil)
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(ag omnisharp smex dumb-jump expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -33,6 +45,12 @@
 
 ;;turn off the tool bar
 (tool-bar-mode -1)
+
+;;use spaces instead of tabs
+;;(setq-default indent-tabs-mode nil)
+
+;;use spaces instead of tabs just for powershell-mode
+(add-hook 'powershell-mode-hook (lambda () (setq indent-tabs-mode nil)))
 
 (setq show-paren-style 'expression)
 
@@ -441,22 +459,29 @@ If point was already at that position, move point to beginning of line."
 
 (use-package dumb-jump
   :ensure t
-  :defer t
+  ;;:defer t
   :config
 
   ;;Add Powershell jumping
-  (add-to-list 'dumb-jump-find-rules
-			   '(:type "function" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
-					   :regex "function\\s*JJJ\\s*\\\(?"
+ (add-to-list 'dumb-jump-find-rules
+			   '(:type "function" :supports ("ag" "rg" "grep" "git-grep") :language "powershell"
+					   :regex "function\\s+[A-Za-z]*:?JJJ[\\s*\\\(]+"
 					   :tests ("function test()" "function test ()" "# function Connect-ToServer([Parameter(Mandatory=$true, Position=0)]")))
-  
-  (add-to-list 'dumb-jump-language-file-exts
-			   '(:language "powershell" :ext "ps1" :agtype nil :rgtype nil))
 
+ (add-to-list 'dumb-jump-find-rules
+ 			  '(:type "variable" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
+ 					 :regex "\\s*JJJ\\s*=[^\\n]+" :tests ("$test = 1234") ))
+ 
+  (add-to-list 'dumb-jump-language-file-exts
+			   ;;'(:language "powershell" :ext "ps1" :agtype nil :rgtype nil)) ;;no extension filtering
+			   ;;'(:language "powershell" :ext "ps1" :agtype "file-search-regex \"\\.ps1$\"" :rgtype nil)) ;; use regex to filter to *.ps1
+			   '(:language "powershell" :ext "ps1" :agtype "powershell" :rgtype "ps")) ;;added --powershell to ag.exe
+			   
   (defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
 	"Push a mark on the stack before jumping"
 	(push-mark))
 
+  (setq dumb-jump-force-searcher 'rg)
   ;;(setq dumb-jump-debug t)
   
   ;;(print dumb-jump-language-file-exts)
@@ -541,7 +566,7 @@ If point was already at that position, move point to beginning of line."
 ;;http://stackoverflow.com/questions/7411920/how-to-bind-search-and-search-repeat-to-c-f-in-emacs
 ;;(bind-key (kbd "C-f" 'isearch-repeat-forward)
 (bind-key "C-o" 'find-file)
-(bind-key "C-x C-r" 'recentf-open-files)
+;;(bind-key "C-x C-r" 'recentf-open-files)
 
 (bind-key "C-a" 'mark-whole-buffer)
 (bind-key "M-SPC" 'set-mark-command)
@@ -577,7 +602,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "C--" 'back-button-global-backward)
 
 (bind-key "M-c" 'avy-goto-word-1)
-(bind-key "M-C" 'avy-goto-word-1-above)
+;;(bind-key "M-C" 'avy-goto-word-1-above)
 (bind-key "M-O" 'ace-window)
 ;;(bind-key* "C-l" 'goto-line)
 
@@ -595,6 +620,11 @@ If point was already at that position, move point to beginning of line."
  'interactive)
 (bind-key "M-z" 'zap-up-to-char)
 
+(defun backwards-zap-to-char (char)
+  (interactive "cZap backwards to char: ")
+  (zap-up-to-char -1 char))
+(bind-key "M-Z" 'backwards-zap-to-char)
+
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
   (bind-key* "<end>" 'end-of-line)  ; make end do what it's supposed to do
@@ -602,3 +632,4 @@ If point was already at that position, move point to beginning of line."
   (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
   )
 
+(put 'upcase-region 'disabled nil)
