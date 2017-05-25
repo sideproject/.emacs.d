@@ -393,7 +393,8 @@ If point was already at that position, move point to beginning of line."
 ;;;https://github.com/justbur/emacs-which-key
 (use-package which-key
   :ensure t
-  :diminish which-key-mode)
+  :diminish which-key-mode
+  :config (which-key-mode))
 
 (use-package clojure-mode
   :ensure t)
@@ -549,7 +550,7 @@ If point was already at that position, move point to beginning of line."
 	:ensure t
 	:defer t))
 
-(bind-key "M-2" 'delete-window)
+(bind-key "M-2" 'deglete-window)
 (bind-key "M-3" 'delete-other-windows)
 
 (bind-key "M-$" 'split-window-horizontally)
