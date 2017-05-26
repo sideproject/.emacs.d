@@ -338,11 +338,13 @@ If point was already at that position, move point to beginning of line."
   :defer t)
 
 (use-package undo-tree
-  :defer t
   :ensure t
   :diminish undo-tree-mode
   :config
   (global-undo-tree-mode))
+
+(use-package web-mode
+  :ensure t)
 
 ;; (use-package text
 ;;   :defer t
@@ -560,7 +562,7 @@ If point was already at that position, move point to beginning of line."
 	:ensure t
 	:defer t))
 
-(bind-key "M-2" 'deglete-window)
+(bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
 
 (bind-key "M-$" 'split-window-horizontally)
