@@ -23,7 +23,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(web-mode csharp-mode rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -611,8 +611,8 @@ If point was already at that position, move point to beginning of line."
 (bind-key* "C-z" 'undo-tree-undo)
 (bind-key* "C-y" 'undo-tree-redo)
 
-(bind-key "C-_" 'back-button-global-forward)
-(bind-key "C--" 'back-button-global-backward)
+(bind-key* "C-_" 'back-button-global-forward)
+(bind-key* "C--" 'back-button-global-backward)
 
 (bind-key "M-c" 'avy-goto-word-1)
 ;;(bind-key "M-C" 'avy-goto-word-1-above)
