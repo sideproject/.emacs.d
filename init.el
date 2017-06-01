@@ -188,7 +188,7 @@
 ;;(add-to-list 'exec-path "C:/Users/cbean/Desktop/PortableGit-2.10.2/bin")
 
 ;;http://stackoverflow.com/questions/50417/how-do-i-get-list-of-recent-files-in-gnu-emacs
-(setq recentf-max-menu-items 25)
+(setq recentf-max-menu-items 128)
 (recentf-mode 1)
 
 (setq hippie-expand-try-functions-list '(try-expand-dabbrev
