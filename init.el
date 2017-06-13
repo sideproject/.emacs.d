@@ -25,7 +25,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(xah-fly-keys web-mode csharp-mode rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -461,13 +461,14 @@ If point was already at that position, move point to beginning of line."
 ;; 	(require 'omnisharp-server-management)
 ;; 	(require 'shut-up)))
 
-(add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
-(add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))  
 (use-package powershell
   :ensure t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
+  (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))  
   :config
   :bind (("<f12>" . dumb-jump-go)))
-		 ;;("C-z" . undo-tree-undo)
+;;("C-z" . undo-tree-undo)
 		 ;;("C-y" . undo-tree-redo)))
 
 (use-package ace-jump-mode
@@ -523,9 +524,9 @@ If point was already at that position, move point to beginning of line."
   ;;(print dumb-jump-find-rules)
   )
 
-(use-package neotree
-  :ensure t
-  :defer t)
+;; (use-package neotree
+;;   :ensure t
+;;   :defer t)
 
 ;;(load "~/.emacs.d/lisp/org-customizations")
 (use-package org-customizations)
@@ -553,8 +554,7 @@ If point was already at that position, move point to beginning of line."
 ;;http://irreal.org/blog/?p=3341
 ;; (setq diredp-hide-details-initially-flag nil)
 ;; (use-package dired+
-;;   :ensure t
-;;   :init
+;;   :ensure trf
 ;;   (diredp-toggle-find-file-reuse-dir t)
 ;;   )
 
@@ -569,7 +569,8 @@ If point was already at that position, move point to beginning of line."
 				 ruby-forward-sexp nil))
 
   (add-to-list 'hs-special-modes-alist
- 			 '(powershell-mode "{" "}" "#" nil nil))
+ 			 ;;'(powershell-mode "{" "}" "#" nil nil))
+ 			 '(powershell-mode "{" "}" "<?#" nil nil))
 
   (global-set-key (kbd "<kp-add>") 'hs-show-block)
   (global-set-key (kbd "C-<kp-add>") 'hs-show-all)
@@ -588,7 +589,6 @@ If point was already at that position, move point to beginning of line."
   (use-package magit
 	:ensure t
 	:defer t))
-
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
@@ -728,19 +728,11 @@ If point was already at that position, move point to beginning of line."
 ;;   (bind-key* "C-g" 'esc-and-command)
 ;;   )
 
-
-
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
 
 (bind-key "M-$" 'split-window-horizontally)
 (bind-key "M-4" 'split-window-vertically)
-
-;;(bind-key "M-i" 'previous-line)
-;;(bind-key "M-k" 'next-line)
-;;(bind-key "M-j" 'left-char)
-;;(bind-key "M-j" 'join-line)
-;;(bind-key "M-l" 'right-char)
 
 (bind-key "C-s" 'save-buffer)
 
@@ -762,7 +754,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "C-w" 'kill-this-buffer)
 (bind-key "C-n" 'ergoemacs-new-empty-buffer)
 
-(bind-key "M-\\" 'hippie-expand)
+;;(bind-key "M-\\" 'hippie-expand)
 (bind-key "C-\\" 'hippie-expand)
 
 (bind-key "<home>" 'cb-smart-beginning-of-line)
@@ -773,11 +765,7 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "C-@" 'er/expand-region)
 
-;;(bind-key "C-f" 'swiper) ;;defined in use-package because we need C-f to do different things in different maps
 (bind-key* "M-a" 'counsel-M-x)
-
-;; (bind-key* "C-z" 'undo-tree-undo)
-;; (bind-key* "C-y" 'undo-tree-redo)
 
 (bind-key* "C-_" 'back-button-global-forward)
 (bind-key* "C--" 'back-button-global-backward)
@@ -796,3 +784,4 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
+(bind-key "C-x rf" 'counsel-recentf)
