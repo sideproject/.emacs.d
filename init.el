@@ -1,3 +1,5 @@
+(prefer-coding-system 'utf-8)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -23,7 +25,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(web-mode csharp-mode rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
+	(xah-fly-keys web-mode csharp-mode rust-mode dumb-jump ag omnisharp smex expand-region magit projectile company hydra yasnippet neotree ace-window avy ace-jump-mode powershell multiple-cursors t: back-button clojure-mode auto-complete counsel try which-key use-package undo-tree)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -55,7 +57,9 @@
 ;;(setq-default indent-tabs-mode nil)
 
 ;;use spaces instead of tabs just for powershell-mode
-(add-hook 'powershell-mode-hook (lambda () (setq indent-tabs-mode nil)))
+(add-hook 'powershell-mode-hook (lambda ()
+								  (setq indent-tabs-mode nil)
+								  (hs-minor-mode 1)))
 
 (setq show-paren-style 'expression)
 
@@ -95,7 +99,6 @@
 	  '(("MELPA Stable" . 10)
 		("GNU ELPA"     . 5)
 		("MELPA"        . 0)))
-
 
 ;;(setq package-enable-at-startup nil) ;;do we need this?
 (package-initialize)
@@ -188,7 +191,8 @@
 ;;(add-to-list 'exec-path "C:/Users/cbean/Desktop/PortableGit-2.10.2/bin")
 
 ;;http://stackoverflow.com/questions/50417/how-do-i-get-list-of-recent-files-in-gnu-emacs
-(setq recentf-max-menu-items 128)
+(setq recentf-max-menu-items 25)
+(setq recentf-max-saved-items 200)
 (recentf-mode 1)
 
 (setq hippie-expand-try-functions-list '(try-expand-dabbrev
@@ -321,11 +325,16 @@ If point was already at that position, move point to beginning of line."
   :bind ("C-f" . swiper)
   :config
   (ivy-mode 1)
-  (define-key ivy-minibuffer-map (kbd "C-f") 'ivy-previous-line-or-history))
+  (define-key ivy-minibuffer-map (kbd "C-f") 'ivy-previous-line-or-history)
+  (define-key ivy-minibuffer-map (kbd "<next>") 'ivy-scroll-up-command)
+  (define-key ivy-minibuffer-map (kbd "<prior>") 'ivy-scroll-down-command)
+  (define-key ivy-minibuffer-map (kbd "<escape>") 'minibuffer-keyboard-quit)
+  ;; (define-key ivy-minibuffer-map (kbd "C-g") 'minibuffer-keyboard-quit)
+  )
 
 (use-package yasnippet
-  :defer t
   :ensure t
+  :defer 5
   :diminish (yas-minor-mode . "")
   :config (yas-global-mode 1))
 
@@ -339,9 +348,18 @@ If point was already at that position, move point to beginning of line."
 
 (use-package undo-tree
   :ensure t
-  :diminish undo-tree-mode
-  :config
-  (global-undo-tree-mode))
+  ;;:diminish undo-tree-mode
+  :bind (("C-z" . undo-tree-undo)
+		 ("C-y" . undo-tree-redo))
+  ;;:config
+  ;;(global-undo-tree-mode))
+  :init
+  (progn	
+    (global-undo-tree-mode)
+	;;http://www.star.bris.ac.uk/bjm/bjm-starter-init.el
+    (defalias 'redo 'undo-tree-redo)
+    (defalias 'undo 'undo-tree-undo)
+    ))
 
 (use-package web-mode
   :ensure t)
@@ -443,10 +461,14 @@ If point was already at that position, move point to beginning of line."
 ;; 	(require 'omnisharp-server-management)
 ;; 	(require 'shut-up)))
 
+(add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
+(add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))  
 (use-package powershell
   :ensure t
-  :defer t
-  :bind ("<f12>" . dumb-jump-go))
+  :config
+  :bind (("<f12>" . dumb-jump-go)))
+		 ;;("C-z" . undo-tree-undo)
+		 ;;("C-y" . undo-tree-redo)))
 
 (use-package ace-jump-mode
   :ensure t
@@ -545,9 +567,14 @@ If point was already at that position, move point to beginning of line."
 				 ,(rx (or "}" "]" "end"))                       ; Block end
 				 ,(rx (or "#" "=begin"))                        ; Comment start
 				 ruby-forward-sexp nil))
-  ;; (global-set-key (kbd "C-c h") 'hs-hide-block)
-  ;; (global-set-key (kbd "C-c s") 'hs-show-block)
-  )
+
+  (add-to-list 'hs-special-modes-alist
+ 			 '(powershell-mode "{" "}" "#" nil nil))
+
+  (global-set-key (kbd "<kp-add>") 'hs-show-block)
+  (global-set-key (kbd "C-<kp-add>") 'hs-show-all)
+  (global-set-key (kbd "C-<kp-subtract>") 'hs-hide-all)
+  (global-set-key (kbd "<kp-subtract>") 'hs-hide-block))
 
 (use-package ag
   :ensure t)
@@ -562,17 +589,158 @@ If point was already at that position, move point to beginning of line."
 	:ensure t
 	:defer t))
 
+
+;;Mac specific stuff
+(when (string-equal system-type "darwin")
+  (bind-key* "<end>" 'end-of-line)  ; make end do what it's supposed to do
+  (setq mac-command-modifier 'meta) ; make cmd do Meta
+  (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
+  )
+
+;; (add-to-list 'load-path "~/.emacs.d/lisp/")
+;; (require 'xah-fly-keys)
+;; (xah-fly-keys-set-layout "qwerty") ; required if you use qwerty
+;; ;; (xah-fly-keys-set-layout "dvorak")
+;; (xah-fly-keys 1)
+
+
+
+;; (setq w32-pass-rwindow-to-system nil)
+;; (setq w32-rwindow-modifier 'super) ; Right Windows key
+
+;; (defun xah-fly--define-keys (*keymap-name *key-cmd-alist)
+;;   "Map `define-key' over a alist *key-cmd-alist.
+;; Example usage:
+;; ;; (xah-fly--define-keys
+;; ;;  (define-prefix-command 'xah-fly-dot-keymap)
+;; ;;  '(
+;; ;;    (\"h\" . highlight-symbol-at-point)
+;; ;;    (\".\" . isearch-forward-symbol-at-point)
+;; ;;    (\"1\" . hi-lock-find-patterns)
+;; ;;    (\"w\" . isearch-forward-word)))
+;; Version 2017-01-21"
+;;   (interactive)
+;;   (mapc
+;;    (lambda (-pair)
+;;      (define-key *keymap-name (xah-fly--key-char (kbd (car -pair))) (cdr -pair)))
+;;    *key-cmd-alist))
+
+;; (defun xah-search-current-word ()
+;;   "Call `isearch' on current word or text selection.
+;; “word” here is A to Z, a to z, and hyphen 「-」 and underline 「_」, independent of syntax table.
+;; URL `http://ergoemacs.org/emacs/modernization_isearch.html'
+;; Version 2015-04-09"
+;;   (interactive)
+;;   (let ( -p1 -p2 )
+;;     (if (use-region-p)
+;;         (progn
+;;           (setq -p1 (region-beginning))
+;;           (setq -p2 (region-end)))
+;;       (save-excursion
+;;         (skip-chars-backward "-_A-Za-z0-9")
+;;         (setq -p1 (point))
+;;         (right-char)
+;;         (skip-chars-forward "-_A-Za-z0-9")
+;;         (setq -p2 (point))))
+;;     (setq mark-active nil)
+;;     (when (< -p1 (point))
+;;       (goto-char -p1))
+;;     (isearch-mode t)
+;;     (isearch-yank-string (buffer-substring-no-properties -p1 -p2))))
+
+;; (use-package modalka
+;;   :bind
+;;   (("M-;" . modalka-global-mode)
+;;    ("<kp-0>" . modalka-global-mode)
+;;    ("<f8>" . modalka-global-mode)
+;;    ;;("<escape>" . modalka-global-mode)
+;;    )
+;;   :ensure t
+;;   :config
+;;   ;; (modalka-define-kbd "W" "M-w")
+;;   ;; (modalka-define-kbd "Y" "M-y")
+;;   ;; (modalka-define-kbd "a" "C-a")
+;;   ;; (modalka-define-kbd "b" "C-b")
+;;   ;; (modalka-define-kbd "e" "C-e")
+;;   ;; (modalka-define-kbd "f" "C-f")
+;;   ;; (modalka-define-kbd "g" "C-g")
+;;   ;; (modalka-define-kbd "n" "C-n")
+;;   ;; (modalka-define-kbd "p" "C-p")
+;;   ;; (modalka-define-kbd "w" "C-w")
+;;   ;; (modalka-define-kbd "y" "C-y")
+;;   ;; (modalka-define-kbd "SPC" "C-SPC")
+
+;;   ;;(define-key modalka-mode-map (kbd "Q") #'my-command)
+;;   (define-key modalka-mode-map (kbd "v") #'cua-paste)
+;;   (define-key modalka-mode-map (kbd "c") #'cb-copy-and-deselect)
+
+;;   (define-key modalka-mode-map (kbd "d") #'cb-duplicate-current-line-or-region)
+;;   (define-key modalka-mode-map (kbd "e") #'eval-last-sexp)
+  
+;;   (define-key modalka-mode-map (kbd "k") #'comment-line)
+;;   (define-key modalka-mode-map (kbd "K") #'uncomment-region)
+
+;;   (define-key modalka-mode-map (kbd "3") #'delete-other-windows)
+;;   (define-key modalka-mode-map (kbd "2") #'delete-window)
+;;   (define-key modalka-mode-map (kbd ".") #'xah-search-current-word)
+;;   (define-key modalka-mode-map (kbd "i") #'modalka-global-mode)
+
+;;   (define-key modalka-mode-map (kbd "h") #'hs-hide-all)
+;;   (define-key modalka-mode-map (kbd "H") #'hs-show-all)
+;;   (define-key modalka-mode-map (kbd "g") #'keyboard-quit)
+;;   (define-key modalka-mode-map (kbd "m") #'mc/mark-next-like-this)
+;;   (define-key modalka-mode-map (kbd "a") #'counsel-M-x)
+;;   (define-key modalka-mode-map (kbd "@") #'er/expand-region)
+;;   (define-key modalka-mode-map (kbd "f") #'swiper)
+;;   (define-key modalka-mode-map (kbd "b") #'ibuffer)
+;;   (define-key modalka-mode-map (kbd "%") #'cb-goto-match-paren)
+;;   (define-key modalka-mode-map (kbd "z") #'zap-up-to-char)
+;;   (define-key modalka-mode-map (kbd "Z") #'backwards-zap-to-char)
+
+;;   (defun esc-and-command()
+;; 	(interactive)
+;; 	(modalka-global-mode 1)
+;; 	(minibuffer-keyboard-quit)
+;; 	(keyboard-quit)
+;; 	)
+;;   ;;(define-key modalka-mode-map (kbd "<escape>") #'esc-and-other)
+  
+;;   (modalka-define-kbd "SPC" "C-SPC")
+;;   ;;(bind-key "M-;" 'modalka-global-mode)
+
+;;   (setq-default cursor-type '(bar . 1))
+;;   (setq modalka-cursor-type 'box)
+
+;;   (define-key isearch-mode-map (kbd ".") 'isearch-repeat-forward)
+;;   (define-key isearch-mode-map (kbd "g") 'keyboard-quit)
+
+;;   (add-to-list 'modalka-excluded-modes 'ibuffer-mode)
+
+;;   ;;https://emacs.stackexchange.com/questions/14755/how-to-remove-bindings-to-the-esc-prefix-key
+;;   ;;; esc always quits
+;;   ;;(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+;;   ;; (define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+;;   ;; (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+;;   ;; (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+;;   ;; (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+;;   ;; (global-set-key [escape] 'keyboard-quit)
+;;   (global-set-key [escape] 'esc-and-command)
+;;   (bind-key* "C-g" 'esc-and-command)
+;;   )
+
+
+
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
 
 (bind-key "M-$" 'split-window-horizontally)
 (bind-key "M-4" 'split-window-vertically)
 
-(bind-key "M-i" 'previous-line)
-(bind-key "M-k" 'next-line)
+;;(bind-key "M-i" 'previous-line)
+;;(bind-key "M-k" 'next-line)
 ;;(bind-key "M-j" 'left-char)
-(bind-key "M-j" 'join-line)
-(bind-key "M-l" 'right-char)
+;;(bind-key "M-j" 'join-line)
+;;(bind-key "M-l" 'right-char)
 
 (bind-key "C-s" 'save-buffer)
 
@@ -608,8 +776,8 @@ If point was already at that position, move point to beginning of line."
 ;;(bind-key "C-f" 'swiper) ;;defined in use-package because we need C-f to do different things in different maps
 (bind-key* "M-a" 'counsel-M-x)
 
-(bind-key* "C-z" 'undo-tree-undo)
-(bind-key* "C-y" 'undo-tree-redo)
+;; (bind-key* "C-z" 'undo-tree-undo)
+;; (bind-key* "C-y" 'undo-tree-redo)
 
 (bind-key* "C-_" 'back-button-global-forward)
 (bind-key* "C--" 'back-button-global-backward)
@@ -619,22 +787,12 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-O" 'ace-window)
 ;;(bind-key* "C-l" 'goto-line)
 
-(bind-keys :prefix-map vs-prefix-map
-		   :prefix "C-k"
-		   ("C-c" . comment-region)
-		   ("C-u" . uncomment-region))
+;; (bind-keys :prefix-map vs-prefix-map
+;; 		   :prefix "C-k"
+;; 		   ("C-c" . comment-region)
+;; 		   ("C-u" . uncomment-region))
 
 (bind-key "M-b" 'ibuffer)
 
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
-
-
-;;Mac specific stuff
-(when (string-equal system-type "darwin")
-  (bind-key* "<end>" 'end-of-line)  ; make end do what it's supposed to do
-  (setq mac-command-modifier 'meta) ; make cmd do Meta
-  (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
-  )
-
-
