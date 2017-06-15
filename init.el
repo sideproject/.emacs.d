@@ -25,7 +25,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+	(csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -55,11 +55,6 @@
 
 ;;use spaces instead of tabs
 ;;(setq-default indent-tabs-mode nil)
-
-;;use spaces instead of tabs just for powershell-mode
-(add-hook 'powershell-mode-hook (lambda ()
-								  (setq indent-tabs-mode nil)
-								  (hs-minor-mode 1)))
 
 (setq show-paren-style 'expression)
 
@@ -461,15 +456,31 @@ If point was already at that position, move point to beginning of line."
 ;; 	(require 'omnisharp-server-management)
 ;; 	(require 'shut-up)))
 
+
+(use-package csharp-mode
+  :ensure t
+  :config  
+    (add-hook 'csharp-mode-hook
+			  (lambda ()
+				(hs-minor-mode 1)
+				(setq indent-tabs-mode nil)
+				)))
+
 (use-package powershell
   :ensure t
   :init
   (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
   (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))  
   :config
+  (add-hook 'powershell-mode-hook
+			(lambda ()
+			  (hs-minor-mode 1)
+			  (setq indent-tabs-mode nil) ;;use spaces instead of tabs just for powershell-mode
+			  ))
+
   :bind (("<f12>" . dumb-jump-go)))
 ;;("C-z" . undo-tree-undo)
-		 ;;("C-y" . undo-tree-redo)))
+;;("C-y" . undo-tree-redo)))
 
 (use-package ace-jump-mode
   :ensure t
@@ -551,13 +562,20 @@ If point was already at that position, move point to beginning of line."
 	("q" nil)
 	))
 
+
+;;leave namespace (1) and class (2) unindented
+;;https://github.com/jwiegley/emacs-release/blob/master/lisp/progmodes/hideshow.el#L100
+(defun ttn-hs-hide-level-2 ()
+  (interactive)
+  (hs-hide-level 2)
+  (forward-sexp 1))
+
 ;;http://irreal.org/blog/?p=3341
 ;; (setq diredp-hide-details-initially-flag nil)
 ;; (use-package dired+
 ;;   :ensure trf
 ;;   (diredp-toggle-find-file-reuse-dir t)
 ;;   )
-
 (use-package hideshow
   :config
   ;;https://coderwall.com/p/u-l0ra/ruby-code-folding-in-emacs
@@ -570,12 +588,20 @@ If point was already at that position, move point to beginning of line."
 
   (add-to-list 'hs-special-modes-alist
  			 ;;'(powershell-mode "{" "}" "#" nil nil))
- 			 '(powershell-mode "{" "}" "<?#" nil nil))
+			   '(powershell-mode "{" "}" "<?#" nil nil))
+
+  (add-to-list 'hs-special-modes-alist
+			   '(csharp-mode "{" "}" "/[*/]" nil nil))
 
   (global-set-key (kbd "<kp-add>") 'hs-show-block)
   (global-set-key (kbd "C-<kp-add>") 'hs-show-all)
   (global-set-key (kbd "C-<kp-subtract>") 'hs-hide-all)
-  (global-set-key (kbd "<kp-subtract>") 'hs-hide-block))
+  (global-set-key (kbd "<kp-subtract>") 'hs-hide-block)
+
+  (add-hook 'csharp-mode-hook (lambda()
+  								(setq-local hs-hide-all-non-comment-function 'ttn-hs-hide-level-2)))
+
+  )
 
 (use-package ag
   :ensure t)
@@ -741,7 +767,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "C-o" 'find-file)
 ;;(bind-key "C-x C-r" 'recentf-open-files)
 
-(bind-key "C-a" 'mark-whole-buffer)
+(bind-key* "C-a" 'mark-whole-buffer)
 (bind-key "M-SPC" 'set-mark-command)
 
 (bind-key "C-<next>" 'ergoemacs-next-user-buffer)
@@ -749,7 +775,8 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "M-G" 'ergoemacs-kill-line-backward)
 (bind-key "M-g" 'kill-line)
-(bind-key "C-L" 'kill-whole-line)
+(bind-key "C-S-L" 'kill-whole-line)
+(bind-key "C-l" 'goto-line)
 
 (bind-key "C-w" 'kill-this-buffer)
 (bind-key "C-n" 'ergoemacs-new-empty-buffer)
@@ -785,3 +812,6 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
 (bind-key "C-x rf" 'counsel-recentf)
+
+
+

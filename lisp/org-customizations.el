@@ -122,7 +122,8 @@
   
   (bind-key "<f12>" 'org-clock-in org-mode-map)
   (bind-key "C-c C-x C-r" 'cb-org-clock-report org-mode-map)
-
+  (bind-key "C-y" 'undo-tree-redo org-mode-map)
+  
   ;;(define-key org-mode-map [(control y)] nil) ;; redo
   ;;(define-key org-mode-map [(meta a)] nil) ;;smex
 
