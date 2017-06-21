@@ -25,7 +25,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+	(js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -456,7 +456,6 @@ If point was already at that position, move point to beginning of line."
 ;; 	(require 'omnisharp-server-management)
 ;; 	(require 'shut-up)))
 
-
 (use-package csharp-mode
   :ensure t
   :config  
@@ -615,6 +614,9 @@ If point was already at that position, move point to beginning of line."
   (use-package magit
 	:ensure t
 	:defer t))
+
+(use-package js2-mode
+  :ensure t)
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
@@ -777,6 +779,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-g" 'kill-line)
 (bind-key "C-S-L" 'kill-whole-line)
 (bind-key "C-l" 'goto-line)
+(bind-key "M-j" 'join-line)
 
 (bind-key "C-w" 'kill-this-buffer)
 (bind-key "C-n" 'ergoemacs-new-empty-buffer)
@@ -798,14 +801,14 @@ If point was already at that position, move point to beginning of line."
 (bind-key* "C--" 'back-button-global-backward)
 
 (bind-key "M-c" 'avy-goto-word-1)
-;;(bind-key "M-C" 'avy-goto-word-1-above)
+(bind-key "M-C" 'avy-goto-word-1-above)
 (bind-key "M-O" 'ace-window)
-;;(bind-key* "C-l" 'goto-line)
+(bind-key* "C-l" 'goto-line)
 
-;; (bind-keys :prefix-map vs-prefix-map
-;; 		   :prefix "C-k"
-;; 		   ("C-c" . comment-region)
-;; 		   ("C-u" . uncomment-region))
+(bind-keys :prefix-map vs-prefix-map
+		   :prefix "C-k"
+		   ("C-c" . comment-region)
+		   ("C-u" . uncomment-region))
 
 (bind-key "M-b" 'ibuffer)
 
@@ -813,5 +816,42 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-Z" 'backwards-zap-to-char)
 (bind-key "C-x rf" 'counsel-recentf)
 
+;; (defun cb-launch-powershell()
+;;   (interactive)
+;;   (start-process "my-process" nil "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.EXE" ))
 
+;; ;;(shell-command (concat "start " (shell-quote-argument "A")))
+;; (setq shell-file-name "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.EXE")
+;; (print shell-file-name)
 
+(defun run-powershell ()
+  "Run powershell"
+  (interactive)
+  (async-shell-command "start c:/windows/system32/WindowsPowerShell/v1.0/powershell.exe" nil nil))
+
+;;https://zhangda.wordpress.com/2010/02/03/open-the-path-of-the-current-buffer-within-emacs/
+;;https://stackoverflow.com/questions/3400884/how-do-i-open-an-explorer-window-in-a-given-directory-from-cmd-exe
+(defun open-buffer-path ()
+  "Run explorer on the directory of the current buffer."
+  (interactive)
+  ;;(shell-command (concat "explorer " (replace-regexp-in-string "/" "\\\\" (file-name-directory (buffer-file-name)) t t))))
+  (shell-command (concat "start " (file-name-directory (buffer-file-name)))))
+
+;;http://emacsredux.com/blog/2013/03/27/copy-filename-to-the-clipboard/
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    ((when )hen filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+(defun remove-readonly-flag ()
+  (interactive)
+  (when (string-equal system-type "windows-nt")
+	(set-file-modes (buffer-file-name) #o666)
+	(print (file-modes (buffer-file-name)))))
+
+;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
