@@ -25,7 +25,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+	(origami origami-mode key-chord litable litable-mode js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -417,6 +417,16 @@ If point was already at that position, move point to beginning of line."
   :config (which-key-mode))
 
 (use-package clojure-mode
+  :bind (:map clojure-mode-map
+			  ("<kp-add>" . origami-open-node-recursively)
+			  ("C-<kp-add>" . origami-open-all-nodes)
+			  ("C-<kp-subtract>" . origami-close-all-nodes)
+			  ("<kp-subtract>" . origami-close-node))
+  :config
+  (add-hook 'clojure-mode-hook
+			(lambda ()
+			  ;;(hs-minor-mode 1)
+			  (origami-mode 1)))
   :ensure t)
 
 (use-package hydra
@@ -465,19 +475,27 @@ If point was already at that position, move point to beginning of line."
 				(setq indent-tabs-mode nil)
 				)))
 
+
 (use-package powershell
   :ensure t
   :init
   (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
-  (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))  
+  (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))
   :config
   (add-hook 'powershell-mode-hook
 			(lambda ()
-			  (hs-minor-mode 1)
+			  ;;(hs-minor-mode 1)
+			  (origami-mode 1)
 			  (setq indent-tabs-mode nil) ;;use spaces instead of tabs just for powershell-mode
 			  ))
+  :bind (:map powershell-mode-map
+			  ("<f12>" . dumb-jump-go)
+			  ("<kp-add>" . origami-open-node-recursively)
+			  ("C-<kp-add>" . origami-open-all-nodes)
+			  ("C-<kp-subtract>" . origami-close-all-nodes)
+			  ("<kp-subtract>" . origami-close-node)))
 
-  :bind (("<f12>" . dumb-jump-go)))
+
 ;;("C-z" . undo-tree-undo)
 ;;("C-y" . undo-tree-redo)))
 
@@ -523,9 +541,9 @@ If point was already at that position, move point to beginning of line."
 			   ;;'(:language "powershell" :ext "ps1" :agtype "file-search-regex \"\\.ps1$\"" :rgtype nil)) ;; use regex to filter to *.ps1
 			   '(:language "powershell" :ext "ps1" :agtype "powershell" :rgtype "ps")) ;;added --powershell to ag.exe
 			   
-  (defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
-	"Push a mark on the stack before jumping"
-	(push-mark))
+  ;; (defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
+  ;; 	"Push a mark on the stack before jumping"
+  ;; 	(push-mark))
 
   (setq dumb-jump-force-searcher 'rg)
   ;;(setq dumb-jump-debug t)
@@ -585,17 +603,17 @@ If point was already at that position, move point to beginning of line."
 				 ,(rx (or "#" "=begin"))                        ; Comment start
 				 ruby-forward-sexp nil))
 
-  (add-to-list 'hs-special-modes-alist
- 			 ;;'(powershell-mode "{" "}" "#" nil nil))
-			   '(powershell-mode "{" "}" "<?#" nil nil))
+  ;; (add-to-list 'hs-special-modes-alist
+  ;; 			 ;;'(powershell-mode "{" "}" "#" nil nil))
+  ;; 			   '(powershell-mode "{" "}" "<?#" nil nil))
 
   (add-to-list 'hs-special-modes-alist
 			   '(csharp-mode "{" "}" "/[*/]" nil nil))
 
-  (global-set-key (kbd "<kp-add>") 'hs-show-block)
-  (global-set-key (kbd "C-<kp-add>") 'hs-show-all)
-  (global-set-key (kbd "C-<kp-subtract>") 'hs-hide-all)
-  (global-set-key (kbd "<kp-subtract>") 'hs-hide-block)
+  ;; (global-set-key (kbd "<kp-add>") 'hs-show-block)
+  ;; (global-set-key (kbd "C-<kp-add>") 'hs-show-all)
+  ;; (global-set-key (kbd "C-<kp-subtract>") 'hs-hide-all)
+  ;; (global-set-key (kbd "<kp-subtract>") 'hs-hide-block)
 
   (add-hook 'csharp-mode-hook (lambda()
   								(setq-local hs-hide-all-non-comment-function 'ttn-hs-hide-level-2)))
@@ -782,7 +800,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-j" 'join-line)
 
 (bind-key "C-w" 'kill-this-buffer)
-(bind-key "C-n" 'ergoemacs-new-empty-buffer)
+;;(bind-key "C-n" 'ergoemacs-new-empty-buffer)
 
 ;;(bind-key "M-\\" 'hippie-expand)
 (bind-key "C-\\" 'hippie-expand)
@@ -853,5 +871,67 @@ If point was already at that position, move point to beginning of line."
   (when (string-equal system-type "windows-nt")
 	(set-file-modes (buffer-file-name) #o666)
 	(print (file-modes (buffer-file-name)))))
-
 ;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
+
+
+;;https://courses.cs.washington.edu/courses/cse451/10au/tutorials/tutorial_ctags.html
+;;http://mattbriggs.net/blog/2012/03/18/awesome-emacs-plugins-ctags/
+;;https://gist.github.com/MarkBorcherding/914528
+(defun build-ctags ()
+  (interactive)
+  (message "building project tags")
+  (let ((root (replace-regexp-in-string "/$" "" (projectile-project-root))))
+	(let ((cmd (concat "u:/src/ctags58/ctags.exe -R --langdef=Powershell --langmap=Powershell:.psm1.ps1 --regex-Powershell=\"/function\s+([a-z]*:)?([a-zA-Z\-]+)/\2/m,method/i\" --regex-Powershell=\"/(\$[a-zA-Z\-]+)/\1/v, variable/i\" --exclude=templates --exclude=library --exclude=logs -e -f " root "/TAGS " root)))	  
+	  (message (concat "building for " root "/TAGS"))	
+	  ;;(message cmd)
+	  (shell-command cmd)
+	  (visit-project-tags)
+	  (message (concat "tags built successfully for " root )))))
+
+(defun visit-project-tags ()
+  (interactive)  
+  (let ((tags-file (concat (replace-regexp-in-string "/$" "" (projectile-project-root)) "/TAGS")))
+	(message (concat "Loading: " tags-file))
+    (visit-tags-table tags-file)
+    (message (concat "Loaded " tags-file))))
+
+;; (use-package etags-select
+;;   :ensure t)
+
+;;(setq tags-add-tables nil)
+;;(setq debug-on-error t)
+;;(setq tags-file-name "u:/.emacs.d/TAGS")
+
+;;automatically evaluate allowed expressions and print to screen
+;;https://twitter.com/emacsrocks/status/387875840626659328
+(use-package litable
+  :ensure t)
+
+(use-package key-chord
+  :ensure t
+  :config
+  (key-chord-define-global "fg" 'avy-goto-char))
+
+(use-package origami
+  :ensure t
+  :config
+  (add-to-list 'origami-parser-alist '(powershell-mode . origami-c-style-parser))
+  ;; (global-set-key (kbd "<kp-add>") 'origami-open-node-recursively)
+  ;; (global-set-key (kbd "C-<kp-add>") 'origami-open-all-nodes)
+  ;; (global-set-key (kbd "C-<kp-subtract>") 'origami-close-all-nodes)
+  ;; (global-set-key (kbd "<kp-subtract>") 'origami-close-node)
+  
+  ;;origami-parsers.el:
+  ;; (defun origami-clj-parser (create)
+  ;;   ;;(origami-lisp-parser create "(def\\(\\w\\|-\\)*\\s-*\\(\\s_\\|\\w\\|[?!]\\)*\\([ \\t]*\\[.*?\\]\\)?"))
+  ;;   ;;(origami-lisp-parser create "(def\\w*\\s+"))
+  ;;   (origami-lisp-parser create "(def\\w*\\s-[a-z-0-9]+"))
+  )
+
+(bind-keys :map emacs-lisp-mode-map
+		   ("<kp-add>" . hs-show-block)
+		   ("C-<kp-add>" . hs-show-all)
+		   ("C-<kp-subtract>" . hs-hide-all)
+		   ("<kp-subtract>" . hs-hide-block))
+  
+  
