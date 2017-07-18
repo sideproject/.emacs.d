@@ -20,12 +20,13 @@
 		   (name 16 -1)
 		   " " filename))))
  '(inhibit-startup-screen t)
+ '(org-agenda-files (quote ("u:/organizer.org")))
  '(org-clock-report-include-clocking-task t)
  '(org-mouse-1-follows-link nil)
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(origami origami-mode key-chord litable litable-mode js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra expand-region dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+	(markdown-mode yaml-mode expand-region origami origami-mode key-chord litable litable-mode js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -476,6 +477,21 @@ If point was already at that position, move point to beginning of line."
 				)))
 
 
+;; (defun find-tag-under-point ()
+;;   (interactive)
+;;   (find-tag (find-tag-default)))
+
+;;https://stackoverflow.com/questions/23693847/how-can-i-jump-to-a-definition-without-being-queried-in-emacs
+(defun find-tag-under-point (&optional arg)
+  (interactive "P")
+  (cond ((eq arg 9)
+     (let ((current-prefix-arg nil))
+       (call-interactively 'find-tag)))
+    (arg
+     (call-interactively 'find-tag))
+    (t
+     (find-tag (find-tag-default)))))
+
 (use-package powershell
   :ensure t
   :init
@@ -493,7 +509,12 @@ If point was already at that position, move point to beginning of line."
 			  ("<kp-add>" . origami-open-node-recursively)
 			  ("C-<kp-add>" . origami-open-all-nodes)
 			  ("C-<kp-subtract>" . origami-close-all-nodes)
-			  ("<kp-subtract>" . origami-close-node)))
+			  ("<kp-subtract>" . origami-close-node)
+			  ;;("M-." . find-tag-under-point)
+			  ("M-." . dumb-jump-go)
+			  ("M-," . dumb-jump-back)
+			  ))
+
 
 
 ;;("C-z" . undo-tree-undo)
@@ -907,10 +928,11 @@ If point was already at that position, move point to beginning of line."
 (use-package litable
   :ensure t)
 
-(use-package key-chord
-  :ensure t
-  :config
-  (key-chord-define-global "fg" 'avy-goto-char))
+
+;; (use-package key-chord
+;;   :ensure t
+;;   :config
+;;   (key-chord-define-global "fg" 'avy-goto-char))
 
 (use-package origami
   :ensure t
@@ -935,3 +957,93 @@ If point was already at that position, move point to beginning of line."
 		   ("<kp-subtract>" . hs-hide-block))
   
   
+
+
+
+
+
+
+
+;;http://sachachua.com/blog/2007/12/emacs-getting-things-done-with-org-basic/
+;; (add-to-list 'load-path "~/elisp/remember-1.9")                                  ;; (1)
+;; (require 'remember-autoloads)
+;; (setq org-remember-templates
+;;       '(("Tasks" ?t "* TODO %?\n  %i\n  %a" "~/organizer.org")                      ;; (2)
+;;         ("Appointments" ?a "* Appointment: %?\n%^T\n%i\n  %a" "~/organizer.org")))
+;; (setq remember-annotation-functions '(org-remember-annotation))
+;; (setq remember-handler-functions '(org-remember-handler))
+;; (eval-after-load 'remember
+;;   '(add-hook 'remember-mode-hook 'org-remember-apply-template))
+;; (global-set-key (kbd "C-c r") 'remember)                                         ;; (3)
+
+;; (require 'org)
+;; (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))                           ;; (4)
+;; (global-set-key (kbd "C-c a") 'org-agenda)                                       ;; (5)
+;; (setq org-todo-keywords '("TODO" "STARTED" "WAITING" "DONE"))                    ;; (6)
+;; (setq org-agenda-include-diary t)                                                ;; (7)
+;; (setq org-agenda-include-all-todo t)                                             ;; (8)
+
+
+
+
+(use-package org
+  :config
+  ;;https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+  (setq org-agenda-files '("~/gtd/inbox.org"
+						   "~/gtd/gtd.org"
+						   "~/gtd/tickler.org"))
+
+
+  (setq org-capture-templates '(("t" "Todo [inbox]" entry
+								 (file+headline "~/gtd/inbox.org" "Tasks")
+								 "* TODO %i%?")
+								("T" "Tickler" entry
+								 (file+headline "~/gtd/tickler.org" "Tickler")
+								 "* %i%? \n %T")))
+
+  (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
+							 ("~/gtd/someday.org" :level . 1)
+							 ("~/gtd/tickler.org" :maxlevel . 2)))
+
+  (define-key global-map (kbd "C-c a") 'org-agenda)
+  (define-key global-map (kbd "C-c c") 'org-capture)
+  ;;(setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+
+  (setq org-agenda-custom-commands 
+		'(("o" "At the office" tags-todo "@office"
+		   ((org-agenda-overriding-header "Office")))
+		  ("x" "At the office" tags-todo "@office"
+		   ((org-agenda-overriding-header "Office")))))
+
+
+  ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
+  (org-add-link-type "outlook" 'org-outlook-open)
+  (defun org-outlook-open (id)
+	(message "HI!")
+	"Open the Outlook item identified by ID.  ID should be an Outlook GUID."
+	(w32-shell-execute "open" "C:/Program Files (x86)/Microsoft Office/Office16/OUTLOOK.EXE" (concat "outlook:" id)))
+  ;;(w32-shell-execute "open" (concat "outlook:" id)))
+  ;;OUTLOOK:000000000C6ED12E25E2F449B08398712BCD22650700E12E63147B2F9C4886898B1B1880243F000150A5AC3B0000CA00A73412F32447A1E570BC28CCEB280002026F57B70000
+
+  (setq org-agenda-todo-ignore-scheduled 'future)
+  )
+
+(use-package yaml-mode
+  :ensure t)
+
+(use-package markdown-mode
+  :ensure t)
+
+;;builtin
+;; (use-package winner-mode
+;;   :ensure t)
+
+;; (use-package workgroups-mode
+;;   :ensure t)
+
+
+
+
+
+
