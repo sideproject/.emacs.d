@@ -26,7 +26,7 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    (quote
-	(markdown-mode yaml-mode expand-region origami origami-mode key-chord litable litable-mode js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+	(markdown-mode yaml-mode expand-region origami origami-mode key-chord js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -47,6 +47,7 @@
  '(show-paren-match ((t (:background "gray21")))))
 
 (put 'upcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
 
 ;;(set-face-attribute 'region nil :background "#666")
 ;;(set-face-attribute 'show-paren-match nil :background "gray21")
@@ -64,6 +65,9 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
+;;use windows type mouse stuff
+(load "init_mouse")
+
 ;;macports puts cert.pem in /opt/local
 (when (string-equal system-type "darwin")
   (require 'gnutls)
@@ -77,7 +81,7 @@
 ;; (let ((melpa-priority
 ;; 	   (cond ((string-equal system-type "windows-nt") 100)
 ;; 			 (t 0))))
-  
+
 ;;   (setq package-archives
 ;; 		'(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
 ;; 		  ("MELPA Stable" . "https://stable.melpa.org/packages/")
@@ -153,10 +157,18 @@
 ;;save minibuffer history
 (savehist-mode 1)
 
-;;no backup or autosave
-(setq backup-by-copying t
-      make-backup-files nil
-      auto-save-default nil)
+;; ;;no backup or autosave
+;; (setq backup-by-copying t
+;;       make-backup-files nil
+;;       auto-save-default nil)
+
+(setq backup-directory-alist `(("." . "~/.saves")))
+(setq backup-by-copying t) ;don't clobber symlinks
+(setq delete-old-versions t
+	  kept-new-versions 6
+	  kept-old-versions 2
+	  version-control t
+	  vc-make-backup-files t) ;; Make backups of files, even when they're in version control
 
 ;;http://www.emacswiki.org/emacs/AlarmBell
 ;;(setq visible-bell 1)           ;; turn on visual bell
@@ -300,8 +312,8 @@ If point was already at that position, move point to beginning of line."
 ;;https://www.emacswiki.org/emacs/ZapUpToChar
 ;;load the zap-up-to-char function from share/emacs/25.1/lisp/misc.elc
 (autoload 'zap-up-to-char "misc"
- "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
- 'interactive)
+  "Kill up to, but not including ARGth occurrence of CHAR. \(fn arg char)"
+  'interactive)
 
 (defun backwards-zap-to-char (char)
   (interactive "cZap backwards to char: ")
@@ -309,6 +321,7 @@ If point was already at that position, move point to beginning of line."
 
 (use-package counsel
   :defer t
+  :bind ("C-x rf" . counsel-recentf)
   :ensure t)
 
 (use-package ivy
@@ -435,7 +448,7 @@ If point was already at that position, move point to beginning of line."
 
 (use-package company
   :ensure t
-  :defer t
+  ;;:defer t
   :diminish company-mode
   :config (global-company-mode))
 
@@ -470,12 +483,11 @@ If point was already at that position, move point to beginning of line."
 (use-package csharp-mode
   :ensure t
   :config  
-    (add-hook 'csharp-mode-hook
-			  (lambda ()
-				(hs-minor-mode 1)
-				(setq indent-tabs-mode nil)
-				)))
-
+  (add-hook 'csharp-mode-hook
+			(lambda ()
+			  (hs-minor-mode 1)
+			  (setq indent-tabs-mode nil)
+			  )))
 
 ;; (defun find-tag-under-point ()
 ;;   (interactive)
@@ -485,12 +497,12 @@ If point was already at that position, move point to beginning of line."
 (defun find-tag-under-point (&optional arg)
   (interactive "P")
   (cond ((eq arg 9)
-     (let ((current-prefix-arg nil))
-       (call-interactively 'find-tag)))
-    (arg
-     (call-interactively 'find-tag))
-    (t
-     (find-tag (find-tag-default)))))
+		 (let ((current-prefix-arg nil))
+		   (call-interactively 'find-tag)))
+		(arg
+		 (call-interactively 'find-tag))
+		(t
+		 (find-tag (find-tag-default)))))
 
 (use-package powershell
   :ensure t
@@ -515,21 +527,22 @@ If point was already at that position, move point to beginning of line."
 			  ("M-," . dumb-jump-back)
 			  ))
 
-
-
 ;;("C-z" . undo-tree-undo)
 ;;("C-y" . undo-tree-redo)))
 
-(use-package ace-jump-mode
-  :ensure t
-  :defer t)
+;; (use-package ace-jump-mode
+;;   :ensure t
+;;   :defer t)
 
 (use-package avy
   :ensure t
+  :bind (("M-c" . avy-goto-word-1)
+		 ("M-C" . avy-goto-word-1-above))
   :defer t)
 
 (use-package ace-window
   :ensure t
+  :bind ("M-O" . ace-window)
   :defer t)
 
 ;;https://github.com/abo-abo/swiper/issues/881
@@ -541,27 +554,27 @@ If point was already at that position, move point to beginning of line."
   ;; (setq smex-save-file (concat user-emacs-directory ".smex-items"))
   ;; (smex-initialize)
   ;; (global-set-key (kbd "M-a") 'smex)
-)
+  )
 
 (use-package dumb-jump
   :ensure t
   :config
 
   ;;Add Powershell jumping
- (add-to-list 'dumb-jump-find-rules
+  (add-to-list 'dumb-jump-find-rules
 			   '(:type "function" :supports ("ag" "rg" "grep" "git-grep") :language "powershell"
 					   :regex "function\\s+[A-Za-z]*:?JJJ[\\s*\\\(]+"
 					   :tests ("function test()" "function test ()" "# function Connect-ToServer([Parameter(Mandatory=$true, Position=0)]")))
 
- (add-to-list 'dumb-jump-find-rules
- 			  '(:type "variable" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
- 					 :regex "\\s*JJJ\\s*=[^\\n]+" :tests ("$test = 1234") ))
- 
+  (add-to-list 'dumb-jump-find-rules
+			   '(:type "variable" :supports ("ag" "grep" "rg" "git-grep") :language "powershell"
+					   :regex "\\s*JJJ\\s*=[^\\n]+" :tests ("$test = 1234") ))
+  
   (add-to-list 'dumb-jump-language-file-exts
 			   ;;'(:language "powershell" :ext "ps1" :agtype nil :rgtype nil)) ;;no extension filtering
 			   ;;'(:language "powershell" :ext "ps1" :agtype "file-search-regex \"\\.ps1$\"" :rgtype nil)) ;; use regex to filter to *.ps1
 			   '(:language "powershell" :ext "ps1" :agtype "powershell" :rgtype "ps")) ;;added --powershell to ag.exe
-			   
+  
   ;; (defadvice dumb-jump-go (before my-dumb-jump-go-advice (&optional opts) activate)
   ;; 	"Push a mark on the stack before jumping"
   ;; 	(push-mark))
@@ -573,12 +586,133 @@ If point was already at that position, move point to beginning of line."
   ;;(print dumb-jump-find-rules)
   )
 
-;; (use-package neotree
-;;   :ensure t
-;;   :defer t)
-
 ;;(load "~/.emacs.d/lisp/org-customizations")
-(use-package org-customizations)
+;;(use-package org-customizations)
+
+(use-package org
+  :ensure t
+  :defer t
+  :config
+
+  (use-package org-bullets)
+
+  (require 'yasnippet)
+  (defun yas/org-very-safe-expand ()
+    (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+  
+  ;;make yasnippets tab completion work
+  (make-variable-buffer-local 'yas/trigger-key)
+  (setq yas/trigger-key [tab])
+  (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
+  (define-key yas/keymap [tab] 'yas/next-field)
+  
+  (bind-key "<f12>" 'org-clock-in org-mode-map)
+  ;;(bind-key "C-c C-x C-r" 'cb-org-clock-report org-mode-map)
+  ;;(bind-key "C-y" 'undo-tree-redo org-mode-map)
+  
+  (use-package hydra
+	:config
+	(defhydra hydra-x  (:hint nil)
+	  "
+   _i_: Clock In    _o_: Clock Out    _r_: Report    _j_: Jump to Current
+   _p_: Progress    _l_: Log Mode     _e_: Estimate  _q_: Quit
+   _w_: Estimate Report
+"  
+	  ("i" org-clock-in :exit t)
+	  ("o" org-clock-out :exit t)
+	  ("r" cb-org-clock-report :exit t)
+	  ("w" cb-org-estimate-report :exit t)
+	  ("j" org-clock-goto :exit t)
+	  ("p" (message (saintaardvark-org-clock-todays-total)))
+	  ("l" org-agenda-list :exit t)
+	  ("e" org-columns :exit t)
+	  ("q" nil)))
+
+  (define-key org-mode-map (kbd "<f5>") 'hydra-x/body)
+  (setq org-src-fontify-natively t)
+
+  ;;http://emacs.stackexchange.com/questions/9528/is-it-possible-to-remove-emsp-from-clock-report-but-preserve-indentation
+  (defun cb-org-clocktable-indent-string (level)
+	(if (= level 1)
+		""
+	  (let ((str "\\"))
+		(while (> level 2)
+		  (setq level (1- level)
+				str (concat str "__")))
+		(concat str "__ "))))
+  (advice-add 'org-clocktable-indent-string :override #'cb-org-clocktable-indent-string)
+  
+  ;; (defun cb-org-mode-filter-tags ()
+  ;; 	(setq x (assoc "ALLTAGS" (org-entry-properties)))
+  ;; 	(unless (string= (cdr x) ":NOBILL:")
+  ;; 	  t))
+
+  ;;https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+  (setq org-agenda-files '("~/gtd/inbox.org"
+						   "~/gtd/gtd.org"
+						   "~/gtd/tickler.org"))
+
+
+  (setq org-capture-templates '(("t" "Todo [inbox]" entry
+								 (file+headline "~/gtd/inbox.org" "Tasks")
+								 "* TODO %i%?")
+								("T" "Tickler" entry
+								 (file+headline "~/gtd/tickler.org" "Tickler")
+								 "* %i%? \n %T")))
+
+  (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
+							 ("~/gtd/someday.org" :level . 1)
+							 ("~/gtd/tickler.org" :maxlevel . 2)))
+
+  (define-key global-map (kbd "C-c a") 'org-agenda)
+  (define-key global-map (kbd "C-c c") 'org-capture)
+  ;;(setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+  (setq org-agenda-custom-commands 
+		'(("o" "At the office" tags-todo "@office"
+		   ((org-agenda-overriding-header "Office")))
+		  ("x" "At the office" tags-todo "@office"
+		   ((org-agenda-overriding-header "Office")))))
+
+  (setq org-agenda-custom-commands 
+		'(("o" "At the office" tags-todo "@office"
+		   ((org-agenda-overriding-header "Office")))
+		  ;;https://emacs.stackexchange.com/questions/22077/org-agenda-how-to-show-only-todos-with-deadline
+		  ("1" "Events" agenda "display deadlines and exclude scheduled" (
+																		  (org-agenda-span 'month)
+																		  (org-agenda-time-grid nil)
+																		  (org-agenda-show-all-dates nil)
+																		  ;;(org-agenda-entry-types '(:deadline)) ;; this entry excludes :scheduled
+																		  (org-deadline-warning-days 0) ))
+		  ))
+
+  ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
+  (org-add-link-type "outlook" 'org-outlook-open)
+  (defun org-outlook-open (id)
+	(message "HI!")
+	"Open the Outlook item identified by ID.  ID should be an Outlook GUID."
+	(w32-shell-execute "open" "C:/Program Files (x86)/Microsoft Office/Office16/OUTLOOK.EXE" (concat "outlook:" id)))
+  ;;(w32-shell-execute "open" (concat "outlook:" id)))
+  ;;OUTLOOK:000000000C6ED12E25E2F449B08398712BCD22650700E12E63147B2F9C4886898B1B1880243F000150A5AC3B0000CA00A73412F32447A1E570BC28CCEB280002026F57B70000
+
+  (setq org-agenda-todo-ignore-scheduled 'future)
+  
+  ;;Highlight in Yellow the current clocked-in task
+  (add-hook 'org-clock-in-hook
+			(lambda ()
+			  (hi-lock-mode 1)
+			  ;; Note: highlight-phrase expects a regex -- if your task has regex characters in it, it won't work all that well.
+			  (highlight-phrase (format "%s" org-clock-heading) 'hi-green-b)))
+
+  (add-hook 'org-clock-out-hook
+			(lambda ()
+			  (hi-lock-mode 0)))
+
+  ;;bullets-mode requires org-mode to be already loaded and the use-package :config doesn't seem to turn it on
+  (add-hook 'org-mode-hook
+			(lambda ()
+			  ;;(which-function-mode 0);;turn off current function in status bar
+			  (org-bullets-mode 1))))
 
 (use-package hydra
   :config
@@ -600,22 +734,23 @@ If point was already at that position, move point to beginning of line."
 	("q" nil)
 	))
 
-
-;;leave namespace (1) and class (2) unindented
-;;https://github.com/jwiegley/emacs-release/blob/master/lisp/progmodes/hideshow.el#L100
-(defun ttn-hs-hide-level-2 ()
-  (interactive)
-  (hs-hide-level 2)
-  (forward-sexp 1))
-
 ;;http://irreal.org/blog/?p=3341
 ;; (setq diredp-hide-details-initially-flag nil)
 ;; (use-package dired+
 ;;   :ensure trf
 ;;   (diredp-toggle-find-file-reuse-dir t)
 ;;   )
+
 (use-package hideshow
   :config
+
+  ;;leave namespace (1) and class (2) unindented
+  ;;https://github.com/jwiegley/emacs-release/blob/master/lisp/progmodes/hideshow.el#L100
+  (defun ttn-hs-hide-level-2 ()
+	(interactive)
+	(hs-hide-level 2)
+	(forward-sexp 1))
+
   ;;https://coderwall.com/p/u-l0ra/ruby-code-folding-in-emacs
   (add-to-list 'hs-special-modes-alist
 			   `(ruby-mode
@@ -637,9 +772,7 @@ If point was already at that position, move point to beginning of line."
   ;; (global-set-key (kbd "<kp-subtract>") 'hs-hide-block)
 
   (add-hook 'csharp-mode-hook (lambda()
-  								(setq-local hs-hide-all-non-comment-function 'ttn-hs-hide-level-2)))
-
-  )
+  								(setq-local hs-hide-all-non-comment-function 'ttn-hs-hide-level-2))))
 
 (use-package ag
   :ensure t)
@@ -664,136 +797,8 @@ If point was already at that position, move point to beginning of line."
   (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
   )
 
-;; (add-to-list 'load-path "~/.emacs.d/lisp/")
-;; (require 'xah-fly-keys)
-;; (xah-fly-keys-set-layout "qwerty") ; required if you use qwerty
-;; ;; (xah-fly-keys-set-layout "dvorak")
-;; (xah-fly-keys 1)
-
-
-
 ;; (setq w32-pass-rwindow-to-system nil)
 ;; (setq w32-rwindow-modifier 'super) ; Right Windows key
-
-;; (defun xah-fly--define-keys (*keymap-name *key-cmd-alist)
-;;   "Map `define-key' over a alist *key-cmd-alist.
-;; Example usage:
-;; ;; (xah-fly--define-keys
-;; ;;  (define-prefix-command 'xah-fly-dot-keymap)
-;; ;;  '(
-;; ;;    (\"h\" . highlight-symbol-at-point)
-;; ;;    (\".\" . isearch-forward-symbol-at-point)
-;; ;;    (\"1\" . hi-lock-find-patterns)
-;; ;;    (\"w\" . isearch-forward-word)))
-;; Version 2017-01-21"
-;;   (interactive)
-;;   (mapc
-;;    (lambda (-pair)
-;;      (define-key *keymap-name (xah-fly--key-char (kbd (car -pair))) (cdr -pair)))
-;;    *key-cmd-alist))
-
-;; (defun xah-search-current-word ()
-;;   "Call `isearch' on current word or text selection.
-;; “word” here is A to Z, a to z, and hyphen 「-」 and underline 「_」, independent of syntax table.
-;; URL `http://ergoemacs.org/emacs/modernization_isearch.html'
-;; Version 2015-04-09"
-;;   (interactive)
-;;   (let ( -p1 -p2 )
-;;     (if (use-region-p)
-;;         (progn
-;;           (setq -p1 (region-beginning))
-;;           (setq -p2 (region-end)))
-;;       (save-excursion
-;;         (skip-chars-backward "-_A-Za-z0-9")
-;;         (setq -p1 (point))
-;;         (right-char)
-;;         (skip-chars-forward "-_A-Za-z0-9")
-;;         (setq -p2 (point))))
-;;     (setq mark-active nil)
-;;     (when (< -p1 (point))
-;;       (goto-char -p1))
-;;     (isearch-mode t)
-;;     (isearch-yank-string (buffer-substring-no-properties -p1 -p2))))
-
-;; (use-package modalka
-;;   :bind
-;;   (("M-;" . modalka-global-mode)
-;;    ("<kp-0>" . modalka-global-mode)
-;;    ("<f8>" . modalka-global-mode)
-;;    ;;("<escape>" . modalka-global-mode)
-;;    )
-;;   :ensure t
-;;   :config
-;;   ;; (modalka-define-kbd "W" "M-w")
-;;   ;; (modalka-define-kbd "Y" "M-y")
-;;   ;; (modalka-define-kbd "a" "C-a")
-;;   ;; (modalka-define-kbd "b" "C-b")
-;;   ;; (modalka-define-kbd "e" "C-e")
-;;   ;; (modalka-define-kbd "f" "C-f")
-;;   ;; (modalka-define-kbd "g" "C-g")
-;;   ;; (modalka-define-kbd "n" "C-n")
-;;   ;; (modalka-define-kbd "p" "C-p")
-;;   ;; (modalka-define-kbd "w" "C-w")
-;;   ;; (modalka-define-kbd "y" "C-y")
-;;   ;; (modalka-define-kbd "SPC" "C-SPC")
-
-;;   ;;(define-key modalka-mode-map (kbd "Q") #'my-command)
-;;   (define-key modalka-mode-map (kbd "v") #'cua-paste)
-;;   (define-key modalka-mode-map (kbd "c") #'cb-copy-and-deselect)
-
-;;   (define-key modalka-mode-map (kbd "d") #'cb-duplicate-current-line-or-region)
-;;   (define-key modalka-mode-map (kbd "e") #'eval-last-sexp)
-  
-;;   (define-key modalka-mode-map (kbd "k") #'comment-line)
-;;   (define-key modalka-mode-map (kbd "K") #'uncomment-region)
-
-;;   (define-key modalka-mode-map (kbd "3") #'delete-other-windows)
-;;   (define-key modalka-mode-map (kbd "2") #'delete-window)
-;;   (define-key modalka-mode-map (kbd ".") #'xah-search-current-word)
-;;   (define-key modalka-mode-map (kbd "i") #'modalka-global-mode)
-
-;;   (define-key modalka-mode-map (kbd "h") #'hs-hide-all)
-;;   (define-key modalka-mode-map (kbd "H") #'hs-show-all)
-;;   (define-key modalka-mode-map (kbd "g") #'keyboard-quit)
-;;   (define-key modalka-mode-map (kbd "m") #'mc/mark-next-like-this)
-;;   (define-key modalka-mode-map (kbd "a") #'counsel-M-x)
-;;   (define-key modalka-mode-map (kbd "@") #'er/expand-region)
-;;   (define-key modalka-mode-map (kbd "f") #'swiper)
-;;   (define-key modalka-mode-map (kbd "b") #'ibuffer)
-;;   (define-key modalka-mode-map (kbd "%") #'cb-goto-match-paren)
-;;   (define-key modalka-mode-map (kbd "z") #'zap-up-to-char)
-;;   (define-key modalka-mode-map (kbd "Z") #'backwards-zap-to-char)
-
-;;   (defun esc-and-command()
-;; 	(interactive)
-;; 	(modalka-global-mode 1)
-;; 	(minibuffer-keyboard-quit)
-;; 	(keyboard-quit)
-;; 	)
-;;   ;;(define-key modalka-mode-map (kbd "<escape>") #'esc-and-other)
-  
-;;   (modalka-define-kbd "SPC" "C-SPC")
-;;   ;;(bind-key "M-;" 'modalka-global-mode)
-
-;;   (setq-default cursor-type '(bar . 1))
-;;   (setq modalka-cursor-type 'box)
-
-;;   (define-key isearch-mode-map (kbd ".") 'isearch-repeat-forward)
-;;   (define-key isearch-mode-map (kbd "g") 'keyboard-quit)
-
-;;   (add-to-list 'modalka-excluded-modes 'ibuffer-mode)
-
-;;   ;;https://emacs.stackexchange.com/questions/14755/how-to-remove-bindings-to-the-esc-prefix-key
-;;   ;;; esc always quits
-;;   ;;(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
-;;   ;; (define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
-;;   ;; (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
-;;   ;; (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
-;;   ;; (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
-;;   ;; (global-set-key [escape] 'keyboard-quit)
-;;   (global-set-key [escape] 'esc-and-command)
-;;   (bind-key* "C-g" 'esc-and-command)
-;;   )
 
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
@@ -823,7 +828,7 @@ If point was already at that position, move point to beginning of line."
 (bind-key "C-w" 'kill-this-buffer)
 ;;(bind-key "C-n" 'ergoemacs-new-empty-buffer)
 
-;;(bind-key "M-\\" 'hippie-expand)
+(bind-key "M-\\" 'hippie-expand)
 (bind-key "C-\\" 'hippie-expand)
 
 (bind-key "<home>" 'cb-smart-beginning-of-line)
@@ -839,9 +844,6 @@ If point was already at that position, move point to beginning of line."
 (bind-key* "C-_" 'back-button-global-forward)
 (bind-key* "C--" 'back-button-global-backward)
 
-(bind-key "M-c" 'avy-goto-word-1)
-(bind-key "M-C" 'avy-goto-word-1-above)
-(bind-key "M-O" 'ace-window)
 (bind-key* "C-l" 'goto-line)
 
 (bind-keys :prefix-map vs-prefix-map
@@ -853,7 +855,6 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
-(bind-key "C-x rf" 'counsel-recentf)
 
 ;; (defun cb-launch-powershell()
 ;;   (interactive)
@@ -884,8 +885,8 @@ If point was already at that position, move point to beginning of line."
                       default-directory
                     (buffer-file-name))))
     ((when )hen filename
-      (kill-new filename)
-      (message "Copied buffer file name '%s' to the clipboard." filename))))
+	 (kill-new filename)
+	 (message "Copied buffer file name '%s' to the clipboard." filename))))
 
 (defun remove-readonly-flag ()
   (interactive)
@@ -923,12 +924,6 @@ If point was already at that position, move point to beginning of line."
 ;;(setq debug-on-error t)
 ;;(setq tags-file-name "u:/.emacs.d/TAGS")
 
-;;automatically evaluate allowed expressions and print to screen
-;;https://twitter.com/emacsrocks/status/387875840626659328
-(use-package litable
-  :ensure t)
-
-
 ;; (use-package key-chord
 ;;   :ensure t
 ;;   :config
@@ -955,79 +950,6 @@ If point was already at that position, move point to beginning of line."
 		   ("C-<kp-add>" . hs-show-all)
 		   ("C-<kp-subtract>" . hs-hide-all)
 		   ("<kp-subtract>" . hs-hide-block))
-  
-  
-
-
-
-
-
-
-
-;;http://sachachua.com/blog/2007/12/emacs-getting-things-done-with-org-basic/
-;; (add-to-list 'load-path "~/elisp/remember-1.9")                                  ;; (1)
-;; (require 'remember-autoloads)
-;; (setq org-remember-templates
-;;       '(("Tasks" ?t "* TODO %?\n  %i\n  %a" "~/organizer.org")                      ;; (2)
-;;         ("Appointments" ?a "* Appointment: %?\n%^T\n%i\n  %a" "~/organizer.org")))
-;; (setq remember-annotation-functions '(org-remember-annotation))
-;; (setq remember-handler-functions '(org-remember-handler))
-;; (eval-after-load 'remember
-;;   '(add-hook 'remember-mode-hook 'org-remember-apply-template))
-;; (global-set-key (kbd "C-c r") 'remember)                                         ;; (3)
-
-;; (require 'org)
-;; (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))                           ;; (4)
-;; (global-set-key (kbd "C-c a") 'org-agenda)                                       ;; (5)
-;; (setq org-todo-keywords '("TODO" "STARTED" "WAITING" "DONE"))                    ;; (6)
-;; (setq org-agenda-include-diary t)                                                ;; (7)
-;; (setq org-agenda-include-all-todo t)                                             ;; (8)
-
-
-
-
-(use-package org
-  :config
-  ;;https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-  (setq org-agenda-files '("~/gtd/inbox.org"
-						   "~/gtd/gtd.org"
-						   "~/gtd/tickler.org"))
-
-
-  (setq org-capture-templates '(("t" "Todo [inbox]" entry
-								 (file+headline "~/gtd/inbox.org" "Tasks")
-								 "* TODO %i%?")
-								("T" "Tickler" entry
-								 (file+headline "~/gtd/tickler.org" "Tickler")
-								 "* %i%? \n %T")))
-
-  (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
-							 ("~/gtd/someday.org" :level . 1)
-							 ("~/gtd/tickler.org" :maxlevel . 2)))
-
-  (define-key global-map (kbd "C-c a") 'org-agenda)
-  (define-key global-map (kbd "C-c c") 'org-capture)
-  ;;(setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
-
-
-  (setq org-agenda-custom-commands 
-		'(("o" "At the office" tags-todo "@office"
-		   ((org-agenda-overriding-header "Office")))
-		  ("x" "At the office" tags-todo "@office"
-		   ((org-agenda-overriding-header "Office")))))
-
-
-  ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
-  (org-add-link-type "outlook" 'org-outlook-open)
-  (defun org-outlook-open (id)
-	(message "HI!")
-	"Open the Outlook item identified by ID.  ID should be an Outlook GUID."
-	(w32-shell-execute "open" "C:/Program Files (x86)/Microsoft Office/Office16/OUTLOOK.EXE" (concat "outlook:" id)))
-  ;;(w32-shell-execute "open" (concat "outlook:" id)))
-  ;;OUTLOOK:000000000C6ED12E25E2F449B08398712BCD22650700E12E63147B2F9C4886898B1B1880243F000150A5AC3B0000CA00A73412F32447A1E570BC28CCEB280002026F57B70000
-
-  (setq org-agenda-todo-ignore-scheduled 'future)
-  )
 
 (use-package yaml-mode
   :ensure t)
@@ -1036,14 +958,46 @@ If point was already at that position, move point to beginning of line."
   :ensure t)
 
 ;;builtin
-;; (use-package winner-mode
-;;   :ensure t)
+;; (use-package winner-mode)
 
 ;; (use-package workgroups-mode
 ;;   :ensure t)
 
+;;https://superuser.com/questions/389303/how-can-i-write-a-emacs-command-that-inserts-a-text-with-a-variable-string-at-th
+;;https://mail.google.com/mail/u/0/#inbox/15d1aa7b18f8842c => https://mail.google.com/mail/u/0/#all/15d1aa7b18f8842c
+(defun format-gmail-org-link ()
+  (interactive)
+  (let* ((bounds (bounds-of-thing-at-point 'url))
+         (text  (thing-at-point 'url)))
+    (when bounds
+      (delete-region (car bounds) (cdr bounds))
+      (insert "[[" (replace-regexp-in-string "/#inbox/" "/#all/" text) "][Link]]"))))
 
+(when (file-exists-p "~/src/ledger/lisp/ledger-mode.el")  
+  (add-to-list 'load-path "~/src/ledger/lisp")
 
+  (use-package ledger-mode
+	:config
+	(add-to-list 'auto-mode-alist '("\\.ledger\\'" . ledger-mode))
+	(add-hook 'ledger-mode-hook (lambda ()
+								  (progn
+									;;(print "1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+									;;(make-local-variable 'jit-lock-chunk-size)
+									(setq jit-lock-chunk-size 4096); was 500 -- increase to handle large Budget block at the top of the file
+									(setq indent-tabs-mode nil)
+									;;(print "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
+									)
+								  nil 'make-it-local))
 
-
-
+	(defun ledger-narrow-to-account ()
+	  (interactive)
+	  (let ((i 0) (j 0))
+		(search-forward ";----")
+		(beginning-of-line)
+		(setq i (point))
+		
+		(search-backward ";----")
+		(beginning-of-line)
+		(setq j (point))
+		
+		(narrow-to-region i j)))))
