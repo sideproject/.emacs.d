@@ -608,7 +608,7 @@ If point was already at that position, move point to beginning of line."
   
   (bind-key "<f12>" 'org-clock-in org-mode-map)
   ;;(bind-key "C-c C-x C-r" 'cb-org-clock-report org-mode-map)
-  ;;(bind-key "C-y" 'undo-tree-redo org-mode-map)
+  (bind-key "C-y" 'undo-tree-redo org-mode-map)
   
   (use-package hydra
 	:config
@@ -648,21 +648,21 @@ If point was already at that position, move point to beginning of line."
   ;; 	  t))
 
   ;;https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-  (setq org-agenda-files '("~/gtd/inbox.org"
-						   "~/gtd/gtd.org"
-						   "~/gtd/tickler.org"))
+  (setq org-agenda-files '("~/gtd/inbox.org.gpg"
+						   "~/gtd/gtd.org.gpg"
+						   "~/gtd/tickler.org.gpg"))
 
 
   (setq org-capture-templates '(("t" "Todo [inbox]" entry
-								 (file+headline "~/gtd/inbox.org" "Tasks")
+								 (file+headline "~/gtd/inbox.org.gpg" "Tasks")
 								 "* TODO %i%?")
 								("T" "Tickler" entry
-								 (file+headline "~/gtd/tickler.org" "Tickler")
+								 (file+headline "~/gtd/tickler.org.gpg" "Tickler")
 								 "* %i%? \n %T")))
 
-  (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
-							 ("~/gtd/someday.org" :level . 1)
-							 ("~/gtd/tickler.org" :maxlevel . 2)))
+  (setq org-refile-targets '(("~/gtd/gtd.org.gpg" :maxlevel . 3)
+							 ("~/gtd/someday.org.gpg" :level . 1)
+							 ("~/gtd/tickler.org.gpg" :maxlevel . 2)))
 
   (define-key global-map (kbd "C-c a") 'org-agenda)
   (define-key global-map (kbd "C-c c") 'org-capture)
@@ -712,7 +712,24 @@ If point was already at that position, move point to beginning of line."
   (add-hook 'org-mode-hook
 			(lambda ()
 			  ;;(which-function-mode 0);;turn off current function in status bar
-			  (org-bullets-mode 1))))
+			  (org-bullets-mode 1)))
+
+  ;;https://stackoverflow.com/questions/13340616/assign-ids-to-every-entry-in-org-mode/16247032#16247032
+  (defun my/org-add-ids-to-headlines-in-file ()
+	"Add ID properties to all headlines in the current file which do not already have one."
+	(interactive)
+	(org-map-entries 'org-id-get-create))
+
+  ;; (defun my/org-set-category-to-id ()
+  ;; 	(interactive)
+  ;; 	(org-element-property "CATEGORY"))
+
+  ;;(add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
+  (add-hook 'org-mode-hook
+  			(lambda ()
+  			  (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
+ 
+  )
 
 (use-package hydra
   :config
@@ -1001,3 +1018,16 @@ If point was already at that position, move point to beginning of line."
 		(setq j (point))
 		
 		(narrow-to-region i j)))))
+
+;;https://www.emacswiki.org/emacs/SurroundRegion
+(defun surround (begin end open close)
+  "Put OPEN at START and CLOSE at END of the region.
+If you omit CLOSE, it will reuse OPEN."
+  (interactive  "r\nsStart: \nsEnd: ")
+  (when (string= close "")
+    (setq close open))
+  (save-excursion
+    (goto-char end)
+    (insert close)
+    (goto-char begin)
+    (insert open)))
