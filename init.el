@@ -592,8 +592,15 @@ If point was already at that position, move point to beginning of line."
 (use-package org
   :ensure t
   :defer t
+  :init
+  ;;https://emacs.stackexchange.com/questions/26287/move-to-the-beginning-of-a-heading-smartly-in-org-mode/26340
+  (setq org-special-ctrl-a/e t)
+  :bind (:map org-mode-map
+			  ("<f12>" . org-clock-in)
+			  ("C-y" . undo-tree-undo)
+			  ("<home>" . org-beginning-of-line)
+			  ("<end>" . org-end-of-line))
   :config
-
   (use-package org-bullets)
 
   (require 'yasnippet)
@@ -606,9 +613,9 @@ If point was already at that position, move point to beginning of line."
   (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
   (define-key yas/keymap [tab] 'yas/next-field)
   
-  (bind-key "<f12>" 'org-clock-in org-mode-map)
+  ;;(bind-key "<f12>" 'org-clock-in org-mode-map)
   ;;(bind-key "C-c C-x C-r" 'cb-org-clock-report org-mode-map)
-  (bind-key "C-y" 'undo-tree-redo org-mode-map)
+  ;;(bind-key "C-y" 'undo-tree-redo org-mode-map)
   
   (use-package hydra
 	:config
@@ -647,44 +654,51 @@ If point was already at that position, move point to beginning of line."
   ;; 	(unless (string= (cdr x) ":NOBILL:")
   ;; 	  t))
 
+  (setq cb-encrypt-org nil)
+  (when (not (string-equal system-type "windows-nt"))
+	(setq cb-encrypt-org t))
+  
+  (defun cb-add-gpg (s)
+	(if cb-encrypt-org
+		(format "%s.gpg" s)
+	  s))
+  
   ;;https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-  (setq org-agenda-files '("~/gtd/inbox.org.gpg"
-						   "~/gtd/gtd.org.gpg"
-						   "~/gtd/tickler.org.gpg"))
+  (setq org-agenda-files `(,(cb-add-gpg "~/gtd/inbox.org")
+  						   ,(cb-add-gpg "~/gtd/gtd.org")
+  						   ,(cb-add-gpg "~/gtd/tickler.org")))
+  
+  (setq org-capture-templates `(("t" "Todo [inbox]" entry
+  								 (file+headline ,(cb-add-gpg "~/gtd/inbox.org") "Tasks")
+  								 "* TODO %i%?")
+  								("T" "Tickler" entry
+  								 (file+headline ,(cb-add-gpg "~/gtd/tickler.org") "Tickler")
+  								 "* %i%? \n %T")))
 
-
-  (setq org-capture-templates '(("t" "Todo [inbox]" entry
-								 (file+headline "~/gtd/inbox.org.gpg" "Tasks")
-								 "* TODO %i%?")
-								("T" "Tickler" entry
-								 (file+headline "~/gtd/tickler.org.gpg" "Tickler")
-								 "* %i%? \n %T")))
-
-  (setq org-refile-targets '(("~/gtd/gtd.org.gpg" :maxlevel . 3)
-							 ("~/gtd/someday.org.gpg" :level . 1)
-							 ("~/gtd/tickler.org.gpg" :maxlevel . 2)))
+  (setq org-refile-targets `((,(cb-add-gpg "~/gtd/gtd.org") :maxlevel . 3)
+							 (,(cb-add-gpg "~/gtd/someday.org") :level . 1)
+  							 (,(cb-add-gpg "~/gtd/tickler.org") :maxlevel . 2)))
 
   (define-key global-map (kbd "C-c a") 'org-agenda)
   (define-key global-map (kbd "C-c c") 'org-capture)
   ;;(setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
   (setq org-agenda-custom-commands 
-		'(("o" "At the office" tags-todo "@office"
-		   ((org-agenda-overriding-header "Office")))
-		  ("x" "At the office" tags-todo "@office"
-		   ((org-agenda-overriding-header "Office")))))
+  		'(("o" "At the office" tags-todo "@office"
+  		   ((org-agenda-overriding-header "Office")))
+  		  ("x" "At the office" tags-todo "@office"
+  		   ((org-agenda-overriding-header "Office")))))
 
   (setq org-agenda-custom-commands 
-		'(("o" "At the office" tags-todo "@office"
-		   ((org-agenda-overriding-header "Office")))
-		  ;;https://emacs.stackexchange.com/questions/22077/org-agenda-how-to-show-only-todos-with-deadline
-		  ("1" "Events" agenda "display deadlines and exclude scheduled" (
-																		  (org-agenda-span 'month)
-																		  (org-agenda-time-grid nil)
-																		  (org-agenda-show-all-dates nil)
-																		  ;;(org-agenda-entry-types '(:deadline)) ;; this entry excludes :scheduled
-																		  (org-deadline-warning-days 0) ))
-		  ))
+  		'(("o" "At the office" tags-todo "@office"
+  		   ((org-agenda-overriding-header "Office")))
+  		  ;;https://emacs.stackexchange.com/questions/22077/org-agenda-how-to-show-only-todos-with-deadline
+  		  ("1" "Events" agenda "display deadlines and exclude scheduled" (
+  																		  (org-agenda-span 'month)
+  																		  (org-agenda-time-grid nil)
+  																		  (org-agenda-show-all-dates nil)
+  																		  ;;(org-agenda-entry-types '(:deadline)) ;; this entry excludes :scheduled
+  																		  (org-deadline-warning-days 0)))))
 
   ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
   (org-add-link-type "outlook" 'org-outlook-open)
@@ -723,12 +737,13 @@ If point was already at that position, move point to beginning of line."
   ;; (defun my/org-set-category-to-id ()
   ;; 	(interactive)
   ;; 	(org-element-property "CATEGORY"))
-
+  
   ;;(add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
-  (add-hook 'org-mode-hook
-  			(lambda ()
-  			  (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
- 
+
+  (when (not (string-equal system-type "windows-nt"))	
+	(add-hook 'org-mode-hook
+			  (lambda ()
+				(add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local))))
   )
 
 (use-package hydra
