@@ -74,23 +74,8 @@
   (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
 
 (require 'package)
+
 ;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
-
-;;http://stackoverflow.com/questions/1664202/emacs-lisp-evaluate-variable-in-alist
-;;use MELPA on windows to get latest but stay on MELPA-STABLE on arch-linux since latest omnisharp requires dotnet which i can't get to work yet.
-;; (let ((melpa-priority
-;; 	   (cond ((string-equal system-type "windows-nt") 100)
-;; 			 (t 0))))
-
-;;   (setq package-archives
-;; 		'(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-;; 		  ("MELPA Stable" . "https://stable.melpa.org/packages/")
-;; 		  ("MELPA"        . "https://melpa.org/packages/"))
-;; 		package-archive-priorities
-;; 		'(("MELPA Stable" . 10)
-;; 		  ("GNU ELPA"     . 5)
-;; 		  `("MELPA"       . ,melpa-priority))))
-
 (setq package-archives
 	  '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
 		("MELPA Stable" . "https://stable.melpa.org/packages/")
@@ -105,8 +90,18 @@
 
 (when (string-equal system-type "windows-nt")
   (add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
-  ;;(setq ispell-personal-dictionary "C:/path/to/your/.ispell") 
   (setq ispell-program-name "aspell"))
+
+(setq cb-encrypt-org nil)
+(setq cb-add-org-ids nil)
+(when (string-equal system-type "gnu/linux")
+  (setq cb-encrypt-org t)
+  (setq cb-add-org-ids t))
+
+;; for Windows and Mac, set Middle-click to do nothing (it can be customizable by the user)
+(when (or (string-equal system-type "windows-nt")
+          (string-equal system-type "darwin"))
+  (global-set-key [mouse-2] nil))
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -119,11 +114,6 @@
 
 ;; Lets user type y and n instead of the full yes and no.
 (defalias 'yes-or-no-p 'y-or-n-p)
-
-;; for Windows and Mac, set Middle-click to do nothing (it can be customizable by the user)
-(when (or (string-equal system-type "windows-nt")
-          (string-equal system-type "darwin"))
-  (global-set-key [mouse-2] nil))
 
 ;;turn on cua mode
 (cua-mode t)
@@ -156,11 +146,6 @@
 
 ;;save minibuffer history
 (savehist-mode 1)
-
-;; ;;no backup or autosave
-;; (setq backup-by-copying t
-;;       make-backup-files nil
-;;       auto-save-default nil)
 
 (setq backup-directory-alist `(("." . "~/.saves")))
 (setq backup-by-copying t) ;don't clobber symlinks
@@ -360,8 +345,6 @@ If point was already at that position, move point to beginning of line."
   ;;:diminish undo-tree-mode
   :bind (("C-z" . undo-tree-undo)
 		 ("C-y" . undo-tree-redo))
-  ;;:config
-  ;;(global-undo-tree-mode))
   :init
   (progn	
     (global-undo-tree-mode)
@@ -373,31 +356,6 @@ If point was already at that position, move point to beginning of line."
 (use-package web-mode
   :ensure t)
 
-;; (use-package text
-;;   :defer t
-;;   :config
-;;   ;;http://stackoverflow.com/a/11624677
-;;   (defun my-indent-region (N)
-;;     (interactive "p")
-;;     (if mark-active
-;; 		(progn (indent-rigidly (min (mark) (point)) (max (mark) (point)) (* N 4))
-;; 			   (setq deactivate-mark nil))
-;;       (dotimes (i (* N 4))
-;; 		(insert " "))))
-
-;;   (defun my-unindent-region (N)
-;;     (interactive "p")
-;;     (if mark-active
-;; 		(progn (indent-rigidly (min (mark) (point)) (max (mark) (point)) (* N -4))
-;; 			   (setq deactivate-mark nil))
-;;       (indent-rigidly (line-beginning-position) (line-end-position) (* N -4))))
-
-;;   (bind-keys :map text-mode-map
-;; 			 ("<tab>" . my-indent-region)
-;; 			 ("<backtab>" . my-unindent-region)))
-
-
-;;(byte-compile-file "C:/Users/cbean/Desktop/emacs-24.5-bin-i686-mingw32/share/emacs/24.5/lisp/net/tramp-sh.el")
 (use-package tramp
   :defer t
   :init
@@ -405,8 +363,6 @@ If point was already at that position, move point to beginning of line."
 	(setq tramp-default-method "plink")))
 
 (use-package selected
-										;:defer t 
-										;:commands selected-minor-mode
   :diminish selected-minor-mode
   :config
   (setq selected-org-mode-map (make-sparse-keymap))
@@ -439,7 +395,6 @@ If point was already at that position, move point to beginning of line."
   :config
   (add-hook 'clojure-mode-hook
 			(lambda ()
-			  ;;(hs-minor-mode 1)
 			  (origami-mode 1)))
   :ensure t)
 
@@ -461,25 +416,6 @@ If point was already at that position, move point to beginning of line."
 (use-package multiple-cursors
   :ensure t)
 
-;; (use-package omnisharp
-;;   :ensure t
-;;   :config
-
-;;   (setq omnisharp-debug t)
-
-;;   ;;use older with linux (arch) uses MONO -- unable to get dotnet working on arch yet.
-;;   (when (string-equal system-type "gnu/linux")
-;; 	(setq omnisharp--curl-executable-path "/usr/bin/curl")
-;; 	(setq omnisharp-server-executable-path "/home/cbean/src/omnisharp-server/OmniSharp/bin/Debug/OmniSharp.exe"))
-
-;;   ;;use latest MELPA with windows -- uses dotnet
-;;   (when (string-equal system-type "windows-nt")
-;; 	(setq omnisharp--curl-executable-path "U:/bin/gnu/curl.EXE")
-;; 	(setq omnisharp-server-executable-path "C:/Users/cbean/Desktop/omnisharp-win-x64-netcoreapp1.1/OmniSharp.exe")
-;; 	(require 'omnisharp-utils)
-;; 	(require 'omnisharp-server-management)
-;; 	(require 'shut-up)))
-
 (use-package csharp-mode
   :ensure t
   :config  
@@ -488,10 +424,6 @@ If point was already at that position, move point to beginning of line."
 			  (hs-minor-mode 1)
 			  (setq indent-tabs-mode nil)
 			  )))
-
-;; (defun find-tag-under-point ()
-;;   (interactive)
-;;   (find-tag (find-tag-default)))
 
 ;;https://stackoverflow.com/questions/23693847/how-can-i-jump-to-a-definition-without-being-queried-in-emacs
 (defun find-tag-under-point (&optional arg)
@@ -512,7 +444,6 @@ If point was already at that position, move point to beginning of line."
   :config
   (add-hook 'powershell-mode-hook
 			(lambda ()
-			  ;;(hs-minor-mode 1)
 			  (origami-mode 1)
 			  (setq indent-tabs-mode nil) ;;use spaces instead of tabs just for powershell-mode
 			  ))
@@ -522,17 +453,9 @@ If point was already at that position, move point to beginning of line."
 			  ("C-<kp-add>" . origami-open-all-nodes)
 			  ("C-<kp-subtract>" . origami-close-all-nodes)
 			  ("<kp-subtract>" . origami-close-node)
-			  ;;("M-." . find-tag-under-point)
 			  ("M-." . dumb-jump-go)
 			  ("M-," . dumb-jump-back)
 			  ))
-
-;;("C-z" . undo-tree-undo)
-;;("C-y" . undo-tree-redo)))
-
-;; (use-package ace-jump-mode
-;;   :ensure t
-;;   :defer t)
 
 (use-package avy
   :ensure t
@@ -648,16 +571,7 @@ If point was already at that position, move point to beginning of line."
 				str (concat str "__")))
 		(concat str "__ "))))
   (advice-add 'org-clocktable-indent-string :override #'cb-org-clocktable-indent-string)
-  
-  ;; (defun cb-org-mode-filter-tags ()
-  ;; 	(setq x (assoc "ALLTAGS" (org-entry-properties)))
-  ;; 	(unless (string= (cdr x) ":NOBILL:")
-  ;; 	  t))
-
-  (setq cb-encrypt-org nil)
-  (when (not (string-equal system-type "windows-nt"))
-	(setq cb-encrypt-org t))
-  
+    
   (defun cb-add-gpg (s)
 	(if cb-encrypt-org
 		(format "%s.gpg" s)
@@ -738,13 +652,10 @@ If point was already at that position, move point to beginning of line."
   ;; 	(interactive)
   ;; 	(org-element-property "CATEGORY"))
   
-  ;;(add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
-
-  (when (not (string-equal system-type "windows-nt"))	
+  (when cb-add-org-ids
 	(add-hook 'org-mode-hook
 			  (lambda ()
-				(add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local))))
-  )
+				(add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))))
 
 (use-package hydra
   :config
@@ -765,13 +676,6 @@ If point was already at that position, move point to beginning of line."
 	("a" ace-window)
 	("q" nil)
 	))
-
-;;http://irreal.org/blog/?p=3341
-;; (setq diredp-hide-details-initially-flag nil)
-;; (use-package dired+
-;;   :ensure trf
-;;   (diredp-toggle-find-file-reuse-dir t)
-;;   )
 
 (use-package hideshow
   :config
@@ -814,10 +718,9 @@ If point was already at that position, move point to beginning of line."
   :config (setq projectile-completion-system 'ivy)
   (projectile-global-mode))
 
-(when (not (string-equal system-type "windows-nt"))
-  (use-package magit
-	:ensure t
-	:defer t))
+(use-package magit
+  :ensure t
+  :defer t)
 
 (use-package js2-mode
   :ensure t)
@@ -922,9 +825,11 @@ If point was already at that position, move point to beginning of line."
 
 (defun remove-readonly-flag ()
   (interactive)
-  (when (string-equal system-type "windows-nt")
-	(set-file-modes (buffer-file-name) #o666)
-	(print (file-modes (buffer-file-name)))))
+  (if (string-equal system-type "windows-nt")
+	  (set-file-modes (buffer-file-name) #o666)
+	(shell-command (format "chmod u+w %s" buffer-file-name)))
+  (print (file-modes (buffer-file-name)))
+  (read-only-mode -1))
 ;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
 
 
@@ -948,13 +853,6 @@ If point was already at that position, move point to beginning of line."
 	(message (concat "Loading: " tags-file))
     (visit-tags-table tags-file)
     (message (concat "Loaded " tags-file))))
-
-;; (use-package etags-select
-;;   :ensure t)
-
-;;(setq tags-add-tables nil)
-;;(setq debug-on-error t)
-;;(setq tags-file-name "u:/.emacs.d/TAGS")
 
 ;; (use-package key-chord
 ;;   :ensure t
