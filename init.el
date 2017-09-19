@@ -68,6 +68,8 @@
 ;;use windows type mouse stuff
 (load "init_mouse")
 
+(load "org-table-comment")
+
 ;;macports puts cert.pem in /opt/local
 (when (string-equal system-type "darwin")
   (require 'gnutls)
@@ -118,7 +120,7 @@
 ;;turn on cua mode
 (cua-mode t)
 (setq cua-keep-region-after-copy t    ;; Standard Windows behaviour
-      cua-auto-tabify-rectangles nil) ;; Don't tabify after rectangle commands
+	  cua-auto-tabify-rectangles nil) ;; Don't tabify after rectangle commands
 
 (defun esk-pretty-fn ()
   (font-lock-add-keywords nil `(("(\\(\\<fn\\>\\)"
@@ -344,7 +346,7 @@ If point was already at that position, move point to beginning of line."
   :ensure t
   ;;:diminish undo-tree-mode
   :bind (("C-z" . undo-tree-undo)
-		 ("C-y" . undo-tree-redo))
+   		 ("C-y" . undo-tree-redo))
   :init
   (progn	
     (global-undo-tree-mode)
@@ -456,7 +458,6 @@ If point was already at that position, move point to beginning of line."
 			  ("M-." . dumb-jump-go)
 			  ("M-," . dumb-jump-back)
 			  ))
-
 (use-package avy
   :ensure t
   :bind (("M-c" . avy-goto-word-1)
@@ -465,7 +466,8 @@ If point was already at that position, move point to beginning of line."
 
 (use-package ace-window
   :ensure t
-  :bind ("M-O" . ace-window)
+  :bind (("M-O" . ace-window)
+		 ("M-o" . ace-window))
   :defer t)
 
 ;;https://github.com/abo-abo/swiper/issues/881
@@ -612,7 +614,12 @@ If point was already at that position, move point to beginning of line."
   																		  (org-agenda-time-grid nil)
   																		  (org-agenda-show-all-dates nil)
   																		  ;;(org-agenda-entry-types '(:deadline)) ;; this entry excludes :scheduled
-  																		  (org-deadline-warning-days 0)))))
+  																		  (org-deadline-warning-days 0)))
+		  ("w" "Asdf" todo "WAITING|FOLLOWUP" (
+																		(org-agenda-todo-ignore-scheduled nil)))))
+
+  ;;(setq org-agenda-todo-ignore-scheduled 'future)
+  ;;(setq org-agenda-todo-ignore-scheduled nil)
 
   ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
   (org-add-link-type "outlook" 'org-outlook-open)
@@ -738,14 +745,14 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
 
-(bind-key "M-$" 'split-window-horizontally)
-(bind-key "M-4" 'split-window-vertically)
+;; (bind-key "M-$" 'split-window-horizontally)
+;; (bind-key "M-4" 'split-window-vertically)
 
 (bind-key "C-s" 'save-buffer)
 
 ;;http://stackoverflow.com/questions/7411920/how-to-bind-search-and-search-repeat-to-c-f-in-emacs
 ;;(bind-key (kbd "C-f" 'isearch-repeat-forward)
-(bind-key "C-o" 'find-file)
+(bind-key "C-o" 'counsel-find-file)
 ;;(bind-key "C-x C-r" 'recentf-open-files)
 
 (bind-key* "C-a" 'mark-whole-buffer)
@@ -754,21 +761,21 @@ If point was already at that position, move point to beginning of line."
 (bind-key "C-<next>" 'ergoemacs-next-user-buffer)
 (bind-key "C-<prior>" 'ergoemacs-previous-user-buffer)
 
-(bind-key "M-G" 'ergoemacs-kill-line-backward)
-(bind-key "M-g" 'kill-line)
-(bind-key "C-S-L" 'kill-whole-line)
-(bind-key "C-l" 'goto-line)
+;; (bind-key "M-G" 'ergoemacs-kill-line-backward)
+;; (bind-key "M-g" 'kill-line)
+;; (bind-key "C-S-L" 'kill-whole-line)
+;; (bind-key "C-l" 'goto-line)
 (bind-key "M-j" 'join-line)
 
 (bind-key "C-w" 'kill-this-buffer)
-;;(bind-key "C-n" 'ergoemacs-new-empty-buffer)
+(bind-key "C-n" 'ergoemacs-new-empty-buffer)
 
 (bind-key "M-\\" 'hippie-expand)
 (bind-key "C-\\" 'hippie-expand)
 
 (bind-key "<home>" 'cb-smart-beginning-of-line)
-(bind-key "C-%" 'cb-goto-match-paren)
-(bind-key "C-c d" 'cb-duplicate-current-line-or-region)
+(bind-key "C-%"    'cb-goto-match-paren)
+(bind-key "C-c d"  'cb-duplicate-current-line-or-region)
 
 (bind-key "C-c w" 'hydra-window/body)
 
@@ -776,17 +783,18 @@ If point was already at that position, move point to beginning of line."
 
 (bind-key* "M-a" 'counsel-M-x)
 
-(bind-key* "C-_" 'back-button-global-forward)
-(bind-key* "C--" 'back-button-global-backward)
+;;(bind-key* "C-_" 'back-button-global-forward)
+;;(bind-key* "C--" 'back-button-global-backward)
 
-(bind-key* "C-l" 'goto-line)
+;(bind-key* "C-l" 'goto-line)
 
-(bind-keys :prefix-map vs-prefix-map
-		   :prefix "C-k"
-		   ("C-c" . comment-region)
-		   ("C-u" . uncomment-region))
+;; (bind-keys :prefix-map vs-prefix-map
+;; 		   :prefix "C-k"
+;; 		   ("C-c" . comment-region)
+;; 		   ("C-u" . uncomment-region))
 
-(bind-key "M-b" 'ibuffer)
+;; (bind-key "M-b" 'ibuffer)
+(bind-key "M-b" 'ivy-switch-buffer)
 
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
@@ -811,6 +819,11 @@ If point was already at that position, move point to beginning of line."
   (interactive)
   ;;(shell-command (concat "explorer " (replace-regexp-in-string "/" "\\\\" (file-name-directory (buffer-file-name)) t t))))
   (shell-command (concat "start " (file-name-directory (buffer-file-name)))))
+
+(defun show-buffer-path ()
+  "Print the current buffer path in the M-X window."
+  (interactive)
+    (print (buffer-file-name)))
 
 ;;http://emacsredux.com/blog/2013/03/27/copy-filename-to-the-clipboard/
 (defun copy-file-name-to-clipboard ()
@@ -944,3 +957,31 @@ If you omit CLOSE, it will reuse OPEN."
     (insert close)
     (goto-char begin)
     (insert open)))
+
+;;https://stackoverflow.com/questions/9688748/emacs-comment-uncomment-current-line
+(defun comment-or-uncomment-region-or-line ()
+    "Comments or uncomments the region or the current line if there's no active region."
+    (interactive)
+    (let (beg end)
+        (if (region-active-p)
+            (setq beg (region-beginning) end (region-end))
+            (setq beg (line-beginning-position) end (line-end-position)))
+        (comment-or-uncomment-region beg end)))
+(bind-key "M-;" 'comment-or-uncomment-region-or-line)
+
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+(ivy-set-actions
+ 'counsel-find-file
+ '(("j" find-file-other-window "other window")
+   ("b" (lambda (_) (interactive) (counsel-bookmark)) "bookmark")))
+
+
