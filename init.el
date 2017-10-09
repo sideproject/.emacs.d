@@ -766,6 +766,8 @@ If point was already at that position, move point to beginning of line."
 ;; (bind-key "C-S-L" 'kill-whole-line)
 ;; (bind-key "C-l" 'goto-line)
 (bind-key "M-j" 'join-line)
+(bind-key "C-S-k" 'ergoemacs-kill-line-backward)
+;; (bind-key "C-k" 'kill-line)
 
 (bind-key "C-w" 'kill-this-buffer)
 (bind-key "C-n" 'ergoemacs-new-empty-buffer)
