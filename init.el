@@ -934,6 +934,13 @@ If point was already at that position, move point to beginning of line."
 									)
 								  nil 'make-it-local))
 
+	;;remove cleared * if there is one when copying a transaction
+	(defadvice ledger-copy-transaction-at-point (after say-ouch activate)
+	  ;;(print "AAAAAAAAAAAAAAAAAAAAAAA")
+	  (ledger-navigate-beginning-of-xact)
+	  (if (string= "cleared" (ledger-transaction-state))
+		  (ledger-toggle-current)))
+
 	(defun ledger-narrow-to-account ()
 	  (interactive)
 	  (let ((i 0) (j 0))
@@ -987,3 +994,4 @@ If you omit CLOSE, it will reuse OPEN."
    ("b" (lambda (_) (interactive) (counsel-bookmark)) "bookmark")))
 
 
+(server-start)
