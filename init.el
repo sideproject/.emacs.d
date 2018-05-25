@@ -84,21 +84,6 @@
   (require 'gnutls)
   (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
 
-;;(require 'package)
-
-;;;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
-;;(setq package-archives
-;;	  '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-;;		("MELPA Stable" . "https://stable.melpa.org/packages/")
-;;		("MELPA"        . "https://melpa.org/packages/"))
-;;	  package-archive-priorities
-;;	  '(("MELPA Stable" . 10)
-;;		("GNU ELPA"     . 5)
-;;		("MELPA"        . 0)))
-
-;;(setq package-enable-at-startup nil) ;;do we need this?
-;;(package-initialize)
-
 (when (string-equal system-type "windows-nt")
   (add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
   (setq ispell-program-name "aspell"))
@@ -119,8 +104,6 @@
 ;;  (package-install 'use-package))
 
 (straight-use-package 'use-package)
-
-;;(require 'use-package)
 
 ;;Turn on column number
 (column-number-mode 1)
@@ -166,14 +149,6 @@
 ;; (setq auto-save-file-name-transforms
 ;;       `((".*" ,temporary-file-directory t)))
 
-;;(print auto-save-file-name-transforms)
-;; (setq auto-save-file-name-transforms
-;; 	  `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "c:/Temp/" t)))
-;; (setq auto-save-file-name-transforms
-;;  	  `((".*" "c:/Temp/" t)))
-;;(print (make-auto-save-file-name)) 
-;;(print buffer-auto-save-file-name)
-
 (setq backup-directory-alist `(("." . "~/.saves/")))
 (setq auto-save-file-name-transforms `((".*" "~/.saves/" t)))
 ;;auto-save-list-file-prefix ;;=> "~/.emacs.d/auto-save-list/.saves-"
@@ -209,10 +184,6 @@
 
 ;;http://stackoverflow.com/questions/803812/emacs-reopen-buffers-from-last-session-on-startup
 (desktop-save-mode 1)
-
-;; ;;http://emacs.stackexchange.com/a/183
-;; ;;(eval-expression (executable-find "git"))
-;;(add-to-list 'exec-path "C:/Users/cbean/Desktop/PortableGit-2.10.2/bin")
 
 ;;http://stackoverflow.com/questions/50417/how-do-i-get-list-of-recent-files-in-gnu-emacs
 (setq recentf-max-menu-items 25)
@@ -360,9 +331,72 @@ If point was already at that position, move point to beginning of line."
 				(revert-buffer t t t)))) ;; don't ask
 		(buffer-list)))
 
+(defun run-powershell ()
+  "Run powershell"
+  (interactive)
+  (async-shell-command "start c:/windows/system32/WindowsPowerShell/v1.0/powershell.exe" nil nil))
+
+;;https://zhangda.wordpress.com/2010/02/03/open-the-path-of-the-current-buffer-within-emacs/
+;;https://stackoverflow.com/questions/3400884/how-do-i-open-an-explorer-window-in-a-given-directory-from-cmd-exe
+(defun open-buffer-path ()
+  "Run explorer on the directory of the current buffer."
+  (interactive)
+  ;;(shell-command (concat "explorer " (replace-regexp-in-string "/" "\\\\" (file-name-directory (buffer-file-name)) t t))))
+  (shell-command (concat "start " (file-name-directory (buffer-file-name)))))
+
+(defun show-buffer-path ()
+  "Print the current buffer path in the M-X window."
+  (interactive)
+  (print (buffer-file-name)))
+
+;;http://emacsredux.com/blog/2013/03/27/copy-filename-to-the-clipboard/
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    ((when )hen filename
+	 (kill-new filename)
+	 (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+(defun remove-readonly-flag ()
+  (interactive)
+  (if (string-equal system-type "windows-nt")
+	  (set-file-modes (buffer-file-name) #o666)
+	(shell-command (format "chmod u+w %s" buffer-file-name)))
+  (print (file-modes (buffer-file-name)))
+  (read-only-mode -1))
+;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
+;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/riemann/riemann.config")
+;;(find-file "/plink:cbean@192.168.100.145:/opt/")
+
+;;https://courses.cs.washington.edu/courses/cse451/10au/tutorials/tutorial_ctags.html
+;;http://mattbriggs.net/blog/2012/03/18/awesome-emacs-plugins-ctags/
+;;https://gist.github.com/MarkBorcherding/914528
+(defun build-ctags ()
+  (interactive)
+  (message "building project tags")
+  (let ((root (replace-regexp-in-string "/$" "" (projectile-project-root))))
+	(let ((cmd (concat "u:/src/ctags58/ctags.exe -R --langdef=Powershell --langmap=Powershell:.psm1.ps1 --regex-Powershell=\"/function\s+([a-z]*:)?([a-zA-Z\-]+)/\2/m,method/i\" --regex-Powershell=\"/(\$[a-zA-Z\-]+)/\1/v, variable/i\" --exclude=templates --exclude=library --exclude=logs -e -f " root "/TAGS " root)))	  
+	  (message (concat "building for " root "/TAGS"))	
+	  ;;(message cmd)
+	  (shell-command cmd)
+	  (visit-project-tags)
+	  (message (concat "tags built successfully for " root )))))
+
+(defun visit-project-tags ()
+  (interactive)  
+  (let ((tags-file (concat (replace-regexp-in-string "/$" "" (projectile-project-root)) "/TAGS")))
+	(message (concat "Loading: " tags-file))
+    (visit-tags-table tags-file)
+    (message (concat "Loaded " tags-file))))
+
+;;https://github.com/raxod502/straight.el/issues/262
 ;; Inspired by `magit-version'
 (defun chunyang-straight-git-version (package)
   (interactive
+
    (list
     (straight--select-package "Package" nil 'installed)))
   (let ((recipe (gethash package straight--recipe-cache))
@@ -391,13 +425,60 @@ If point was already at that position, move point to beginning of line."
 
 ;;(print-elements-recursively (map-keys straight--recipe-cache))
 
+;;https://www.emacswiki.org/emacs/SurroundRegion
+(defun surround (begin end open close)
+  "Put OPEN at START and CLOSE at END of the region.
+If you omit CLOSE, it will reuse OPEN."
+  (interactive  "r\nsStart: \nsEnd: ")
+  (when (string= close "")
+    (setq close open))
+  (save-excursion
+    (goto-char end)
+    (insert close)
+    (goto-char begin)
+    (insert open)))
+
+;;https://stackoverflow.com/questions/9688748/emacs-comment-uncomment-current-line
+(defun comment-or-uncomment-region-or-line ()
+  "Comments or uncomments the region or the current line if there's no active region."
+  (interactive)
+  (let (beg end)
+	(if (region-active-p)
+		(setq beg (region-beginning) end (region-end))
+	  (setq beg (line-beginning-position) end (line-end-position)))
+	(comment-or-uncomment-region beg end)))
+
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+;; (defun cb-launch-powershell()
+;;   (interactive)
+;;   (start-process "my-process" nil "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.EXE" ))
+
+;;https://superuser.com/questions/389303/how-can-i-write-a-emacs-command-that-inserts-a-text-with-a-variable-string-at-th
+;;https://mail.google.com/mail/u/0/#inbox/15d1aa7b18f8842c => https://mail.google.com/mail/u/0/#all/15d1aa7b18f8842c
+;; (defun format-gmail-org-link ()
+;;   (interactive)
+;;   (let* ((bounds (bounds-of-thing-at-point 'url))
+;;          (text  (thing-at-point 'url)))
+;;     (when bounds
+;;       (delete-region (car bounds) (cdr bounds))
+;;       (insert "[[" (replace-regexp-in-string "/#inbox/" "/#all/" text) "][Link]]"))))
+
 (use-package counsel
   :defer t
   :bind ("C-x rf" . counsel-recentf)
-  :ensure t)
+  :straight t)
 
 (use-package ivy
-  :ensure t
+  :straight t
   :diminish ivy-mode)
 
 ;;http://cestlaz.github.io/posts/using-emacs-6-swiper/
@@ -496,7 +577,7 @@ If point was already at that position, move point to beginning of line."
   :config (global-company-mode))
 
 ;;(use-package back-button
-;;  :ensure t
+;;  :straight t
 ;;  :diminish back-button-mode
 ;;  :config
 ;;  (back-button-mode 1))
@@ -546,6 +627,7 @@ If point was already at that position, move point to beginning of line."
 			  ("M-." . dumb-jump-go)
 			  ("M-," . dumb-jump-back)
 			  ))
+
 (use-package avy
   :straight t
   :bind (("M-c" . avy-goto-word-1)
@@ -601,9 +683,8 @@ If point was already at that position, move point to beginning of line."
 
 ;;(load "~/.emacs.d/lisp/org-customizations")
 ;;(use-package org-customizations)
-
 (use-package org
-  ;;:ensure t
+  ;;:straight t
   :defer t
   :init
   ;;https://emacs.stackexchange.com/questions/26287/move-to-the-beginning-of-a-heading-smartly-in-org-mode/26340
@@ -708,16 +789,6 @@ If point was already at that position, move point to beginning of line."
 
   ;;(setq org-agenda-todo-ignore-scheduled 'future)
   ;;(setq org-agenda-todo-ignore-scheduled nil)
-
-;;  ;;https://superuser.com/questions/71786/can-i-create-a-link-to-a-specific-email-message-in-outlook
-;;  (org-add-link-type "outlook" 'org-outlook-open)
-;;  (defun org-outlook-open (id)
-;;	(message "HI!")
-;;	"Open the Outlook item identified by ID.  ID should be an Outlook GUID."
-;;	(w32-shell-execute "open" "C:/Program Files (x86)/Microsoft Office/Office16/OUTLOOK.EXE" (concat "outlook:" id)))
-;;  ;;(w32-shell-execute "open" (concat "outlook:" id)))
-;;  ;;OUTLOOK:000000000C6ED12E25E2F449B08398712BCD22650700E12E63147B2F9C4886898B1B1880243F000150A5AC3B0000CA00A73412F32447A1E570BC28CCEB280002026F57B70000
-
   (setq org-agenda-todo-ignore-scheduled 'future)
   
   ;;Highlight in Yellow the current clocked-in task
@@ -821,17 +892,8 @@ If point was already at that position, move point to beginning of line."
   :straight t
   :defer t)
 
-  :straight t)
-
 (use-package js2-mode
   :straight t)
-
-
-(bind-keys :map emacs-lisp-mode-map
-		   ("<kp-add>" . hs-show-block)
-		   ("C-<kp-add>" . hs-show-all)
-		   ("C-<kp-subtract>" . hs-hide-all)
-		   ("<kp-subtract>" . hs-hide-block))
 
 (use-package yaml-mode
   :straight t)
@@ -868,6 +930,68 @@ If point was already at that position, move point to beginning of line."
 			  ("M-." . dumb-jump-go)
 			  ("M-," . dumb-jump-back)))
 
+;; (use-package key-chord
+;;   :straight t
+;;   :config
+;;   (key-chord-define-global "fg" 'avy-goto-char))
+(use-package origami
+  :straight t
+  :config
+  (add-to-list 'origami-parser-alist '(powershell-mode . origami-c-style-parser))
+  ;; (global-set-key (kbd "<kp-add>") 'origami-open-node-recursively)
+  ;; (global-set-key (kbd "C-<kp-add>") 'origami-open-all-nodes)
+  ;; (global-set-key (kbd "C-<kp-subtract>") 'origami-close-all-nodes)
+  ;; (global-set-key (kbd "<kp-subtract>") 'origami-close-node)
+  
+  ;;origami-parsers.el:
+  ;; (defun origami-clj-parser (create)
+  ;;   ;;(origami-lisp-parser create "(def\\(\\w\\|-\\)*\\s-*\\(\\s_\\|\\w\\|[?!]\\)*\\([ \\t]*\\[.*?\\]\\)?"))
+  ;;   ;;(origami-lisp-parser create "(def\\w*\\s+"))
+  ;;   (origami-lisp-parser create "(def\\w*\\s-[a-z-0-9]+"))
+  )
+
+;;builtin
+;; (use-package winner-mode)
+
+;; (use-package workgroups-mode
+;;   :straight t)
+
+(when (file-exists-p "~/src/ledger/lisp/ledger-mode.el")  
+  (add-to-list 'load-path "~/src/ledger/lisp")
+
+  (use-package ledger-mode
+	:config
+	(add-to-list 'auto-mode-alist '("\\.ledger\\'" . ledger-mode))
+	(add-hook 'ledger-mode-hook (lambda ()
+								  (progn
+									;;(print "1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+									;;(make-local-variable 'jit-lock-chunk-size)
+									(setq jit-lock-chunk-size 4096); was 500 -- increase to handle large Budget block at the top of the file
+									(setq indent-tabs-mode nil)
+									;;(print "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
+									)
+								  nil 'make-it-local))
+
+	;;remove cleared * if there is one when copying a transaction
+	(defadvice ledger-copy-transaction-at-point (after say-ouch activate)
+	  ;;(print "AAAAAAAAAAAAAAAAAAAAAAA")
+	  (ledger-navigate-beginning-of-xact)
+	  (if (string= "cleared" (ledger-transaction-state))
+		  (ledger-toggle-current)))
+
+	(defun ledger-narrow-to-account ()
+	  (interactive)
+	  (let ((i 0) (j 0))
+		(search-forward ";----")
+		(beginning-of-line)
+		(setq i (point))
+		
+		(search-backward ";----")
+		(beginning-of-line)
+		(setq j (point))
+		
+		(narrow-to-region i j)))))
+
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
@@ -876,8 +1000,16 @@ If point was already at that position, move point to beginning of line."
   (setenv "PATH" (concat (getenv "PATH") ":/opt/local/bin")) ;; allow emacs to find ag installed by macports
   )
 
+(bind-keys :map emacs-lisp-mode-map
+		   ("<kp-add>" . hs-show-block)
+		   ("C-<kp-add>" . hs-show-all)
+		   ("C-<kp-subtract>" . hs-hide-all)
+		   ("<kp-subtract>" . hs-hide-block))
+
 ;; (setq w32-pass-rwindow-to-system nil)
 ;; (setq w32-rwindow-modifier 'super) ; Right Windows key
+
+(bind-key "M-;" 'comment-or-uncomment-region-or-line)
 
 (bind-key "M-2" 'delete-window)
 (bind-key "M-3" 'delete-other-windows)
@@ -938,217 +1070,13 @@ If point was already at that position, move point to beginning of line."
 (bind-key "M-z" 'zap-up-to-char)
 (bind-key "M-Z" 'backwards-zap-to-char)
 
-;; (defun cb-launch-powershell()
-;;   (interactive)
-;;   (start-process "my-process" nil "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.EXE" ))
-
 ;; ;;(shell-command (concat "start " (shell-quote-argument "A")))
 ;; (setq shell-file-name "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.EXE")
 ;; (print shell-file-name)
 
-(defun run-powershell ()
-  "Run powershell"
-  (interactive)
-  (async-shell-command "start c:/windows/system32/WindowsPowerShell/v1.0/powershell.exe" nil nil))
-
-;;https://zhangda.wordpress.com/2010/02/03/open-the-path-of-the-current-buffer-within-emacs/
-;;https://stackoverflow.com/questions/3400884/how-do-i-open-an-explorer-window-in-a-given-directory-from-cmd-exe
-(defun open-buffer-path ()
-  "Run explorer on the directory of the current buffer."
-  (interactive)
-  ;;(shell-command (concat "explorer " (replace-regexp-in-string "/" "\\\\" (file-name-directory (buffer-file-name)) t t))))
-  (shell-command (concat "start " (file-name-directory (buffer-file-name)))))
-
-(defun show-buffer-path ()
-  "Print the current buffer path in the M-X window."
-  (interactive)
-  (print (buffer-file-name)))
-
-;;http://emacsredux.com/blog/2013/03/27/copy-filename-to-the-clipboard/
-(defun copy-file-name-to-clipboard ()
-  "Copy the current buffer file name to the clipboard."
-  (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    ((when )hen filename
-	 (kill-new filename)
-	 (message "Copied buffer file name '%s' to the clipboard." filename))))
-
-(defun remove-readonly-flag ()
-  (interactive)
-  (if (string-equal system-type "windows-nt")
-	  (set-file-modes (buffer-file-name) #o666)
-	(shell-command (format "chmod u+w %s" buffer-file-name)))
-  (print (file-modes (buffer-file-name)))
-  (read-only-mode -1))
-;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
-;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/riemann/riemann.config")
-;;(find-file "/plink:cbean@192.168.100.145:/opt/")
-
-;;https://courses.cs.washington.edu/courses/cse451/10au/tutorials/tutorial_ctags.html
-;;http://mattbriggs.net/blog/2012/03/18/awesome-emacs-plugins-ctags/
-;;https://gist.github.com/MarkBorcherding/914528
-(defun build-ctags ()
-  (interactive)
-  (message "building project tags")
-  (let ((root (replace-regexp-in-string "/$" "" (projectile-project-root))))
-	(let ((cmd (concat "u:/src/ctags58/ctags.exe -R --langdef=Powershell --langmap=Powershell:.psm1.ps1 --regex-Powershell=\"/function\s+([a-z]*:)?([a-zA-Z\-]+)/\2/m,method/i\" --regex-Powershell=\"/(\$[a-zA-Z\-]+)/\1/v, variable/i\" --exclude=templates --exclude=library --exclude=logs -e -f " root "/TAGS " root)))	  
-	  (message (concat "building for " root "/TAGS"))	
-	  ;;(message cmd)
-	  (shell-command cmd)
-	  (visit-project-tags)
-	  (message (concat "tags built successfully for " root )))))
-
-(defun visit-project-tags ()
-  (interactive)  
-  (let ((tags-file (concat (replace-regexp-in-string "/$" "" (projectile-project-root)) "/TAGS")))
-	(message (concat "Loading: " tags-file))
-    (visit-tags-table tags-file)
-    (message (concat "Loaded " tags-file))))
-
-;; (use-package key-chord
-;;   :straight t
-;;   :config
-;;   (key-chord-define-global "fg" 'avy-goto-char))
-(use-package origami
-  :straight t
-  :config
-  (add-to-list 'origami-parser-alist '(powershell-mode . origami-c-style-parser))
-  ;; (global-set-key (kbd "<kp-add>") 'origami-open-node-recursively)
-  ;; (global-set-key (kbd "C-<kp-add>") 'origami-open-all-nodes)
-  ;; (global-set-key (kbd "C-<kp-subtract>") 'origami-close-all-nodes)
-  ;; (global-set-key (kbd "<kp-subtract>") 'origami-close-node)
-  
-  ;;origami-parsers.el:
-  ;; (defun origami-clj-parser (create)
-  ;;   ;;(origami-lisp-parser create "(def\\(\\w\\|-\\)*\\s-*\\(\\s_\\|\\w\\|[?!]\\)*\\([ \\t]*\\[.*?\\]\\)?"))
-  ;;   ;;(origami-lisp-parser create "(def\\w*\\s+"))
-  ;;   (origami-lisp-parser create "(def\\w*\\s-[a-z-0-9]+"))
-  )
 ;; (let ((magit-repository-directories
 ;;        (list (cons (straight--repos-dir) 1))))
 ;;   (magit-list-repositories))
-
-;;builtin
-;; (use-package winner-mode)
-
-;; (use-package workgroups-mode
-;;   :straight t)
-
-;;https://superuser.com/questions/389303/how-can-i-write-a-emacs-command-that-inserts-a-text-with-a-variable-string-at-th
-;;https://mail.google.com/mail/u/0/#inbox/15d1aa7b18f8842c => https://mail.google.com/mail/u/0/#all/15d1aa7b18f8842c
-;; (defun format-gmail-org-link ()
-;;   (interactive)
-;;   (let* ((bounds (bounds-of-thing-at-point 'url))
-;;          (text  (thing-at-point 'url)))
-;;     (when bounds
-;;       (delete-region (car bounds) (cdr bounds))
-;;       (insert "[[" (replace-regexp-in-string "/#inbox/" "/#all/" text) "][Link]]"))))
-
-
-(when (file-exists-p "~/src/ledger/lisp/ledger-mode.el")  
-  (add-to-list 'load-path "~/src/ledger/lisp")
-
-  (use-package ledger-mode
-	:config
-	(add-to-list 'auto-mode-alist '("\\.ledger\\'" . ledger-mode))
-	(add-hook 'ledger-mode-hook (lambda ()
-								  (progn
-									;;(print "1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-									;;(make-local-variable 'jit-lock-chunk-size)
-									(setq jit-lock-chunk-size 4096); was 500 -- increase to handle large Budget block at the top of the file
-									(setq indent-tabs-mode nil)
-									;;(print "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
-									)
-								  nil 'make-it-local))
-
-	;;remove cleared * if there is one when copying a transaction
-	(defadvice ledger-copy-transaction-at-point (after say-ouch activate)
-	  ;;(print "AAAAAAAAAAAAAAAAAAAAAAA")
-	  (ledger-navigate-beginning-of-xact)
-	  (if (string= "cleared" (ledger-transaction-state))
-		  (ledger-toggle-current)))
-
-	(defun ledger-narrow-to-account ()
-	  (interactive)
-	  (let ((i 0) (j 0))
-		(search-forward ";----")
-		(beginning-of-line)
-		(setq i (point))
-		
-		(search-backward ";----")
-		(beginning-of-line)
-		(setq j (point))
-		
-		(narrow-to-region i j)))))
-
-;;https://github.com/raxod502/straight.el/issues/262
-;; Inspired by `magit-version'
-(defun chunyang-straight-git-version (package)
-  (interactive
-
-   (list
-    (straight--select-package "Package" nil 'installed)))
-  (let ((recipe (gethash package straight--recipe-cache))
-        version)
-    (straight--with-plist recipe
-        (local-repo type)
-      (when (and (eq type 'git) local-repo)
-        (let ((default-directory (straight--repos-dir local-repo)))
-          (setq version (or (magit-git-string "describe" "--tags" "--dirty")
-                            (magit-rev-parse "--short" "HEAD")))
-          (message "%s %s" (upcase-initials package) version)
-          version)))))
-
-;;(chunyang-straight-git-version "magit")
-;;=> "2.11.0-584-g4eb84d44"
-
-;;(map-keys straight--recipe-cache)
-;;https://www.gnu.org/software/emacs/manual/html_node/eintr/Every.html
-(defun print-elements-recursively (list)
-  "Print each element of LIST on a line of its own.
-     Uses recursion."
-  (when list                            ; do-again-test
-	(message (car list))              ; body
-	(print-elements-recursively     ; recursive call
-	 (cdr list))))                  ; next-step-expression
-
-;;(print-elements-recursively (map-keys straight--recipe-cache))
-
-;;https://www.emacswiki.org/emacs/SurroundRegion
-(defun surround (begin end open close)
-  "Put OPEN at START and CLOSE at END of the region.
-If you omit CLOSE, it will reuse OPEN."
-  (interactive  "r\nsStart: \nsEnd: ")
-  (when (string= close "")
-    (setq close open))
-  (save-excursion
-    (goto-char end)
-    (insert close)
-    (goto-char begin)
-    (insert open)))
-
-;;https://stackoverflow.com/questions/9688748/emacs-comment-uncomment-current-line
-(defun comment-or-uncomment-region-or-line ()
-  "Comments or uncomments the region or the current line if there's no active region."
-  (interactive)
-  (let (beg end)
-	(if (region-active-p)
-		(setq beg (region-beginning) end (region-end))
-	  (setq beg (line-beginning-position) end (line-end-position)))
-	(comment-or-uncomment-region beg end)))
-(bind-key "M-;" 'comment-or-uncomment-region-or-line)
-
-(defun copy-file-name-to-clipboard ()
-  "Copy the current buffer file name to the clipboard."
-  (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (when filename
-      (kill-new filename)
-      (message "Copied buffer file name '%s' to the clipboard." filename))))
 
 (ivy-set-actions
  'counsel-find-file
@@ -1162,9 +1090,6 @@ If you omit CLOSE, it will reuse OPEN."
 						 (dired-directory dired-directory ; Dired buffer
 										  (revert-buffer-function "%b" ; Buffer Menu
 																  ("%b - Dir: " default-directory))))) ; Plain buffer
-;; (bind-key "C-<next>" 'projectile-next-buffer)
-;; (bind-key "C-<prior>" 'projectile-previous-buffer)
-
 (server-start)
 
 (use-package diminish
