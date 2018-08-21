@@ -24,9 +24,9 @@
  '(org-clock-report-include-clocking-task t)
  '(org-mouse-1-follows-link nil)
  '(org-support-shift-select t)
- '(package-selected-packages
-   (quote
-	(markdown-mode yaml-mode expand-region origami origami-mode key-chord js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+ ;; '(package-selected-packages
+ ;;   (quote
+ ;; 	(markdown-mode yaml-mode expand-region origami origami-mode key-chord js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -45,7 +45,6 @@
  '(org-clock-overlay ((t (:background "dim gray" :foreground "white"))))
  '(region ((t (:background "#666" :foreground "#f6f3e8"))))
  '(show-paren-match ((t (:background "gray21")))))
-
 
 (put 'upcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
@@ -367,30 +366,27 @@ If point was already at that position, move point to beginning of line."
 	(shell-command (format "chmod u+w %s" buffer-file-name)))
   (print (file-modes (buffer-file-name)))
   (read-only-mode -1))
-;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
-;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/riemann/riemann.config")
-;;(find-file "/plink:cbean@192.168.100.145:/opt/")
 
-;;https://courses.cs.washington.edu/courses/cse451/10au/tutorials/tutorial_ctags.html
-;;http://mattbriggs.net/blog/2012/03/18/awesome-emacs-plugins-ctags/
-;;https://gist.github.com/MarkBorcherding/914528
-(defun build-ctags ()
-  (interactive)
-  (message "building project tags")
-  (let ((root (replace-regexp-in-string "/$" "" (projectile-project-root))))
-	(let ((cmd (concat "u:/src/ctags58/ctags.exe -R --langdef=Powershell --langmap=Powershell:.psm1.ps1 --regex-Powershell=\"/function\s+([a-z]*:)?([a-zA-Z\-]+)/\2/m,method/i\" --regex-Powershell=\"/(\$[a-zA-Z\-]+)/\1/v, variable/i\" --exclude=templates --exclude=library --exclude=logs -e -f " root "/TAGS " root)))	  
-	  (message (concat "building for " root "/TAGS"))	
-	  ;;(message cmd)
-	  (shell-command cmd)
-	  (visit-project-tags)
-	  (message (concat "tags built successfully for " root )))))
+;; ;;https://courses.cs.washington.edu/courses/cse451/10au/tutorials/tutorial_ctags.html
+;; ;;http://mattbriggs.net/blog/2012/03/18/awesome-emacs-plugins-ctags/
+;; ;;https://gist.github.com/MarkBorcherding/914528
+;; (defun build-ctags ()
+;;   (interactive)
+;;   (message "building project tags")
+;;   (let ((root (replace-regexp-in-string "/$" "" (projectile-project-root))))
+;; 	(let ((cmd (concat "u:/src/ctags58/ctags.exe -R --langdef=Powershell --langmap=Powershell:.psm1.ps1 --regex-Powershell=\"/function\s+([a-z]*:)?([a-zA-Z\-]+)/\2/m,method/i\" --regex-Powershell=\"/(\$[a-zA-Z\-]+)/\1/v, variable/i\" --exclude=templates --exclude=library --exclude=logs -e -f " root "/TAGS " root)))	  
+;; 	  (message (concat "building for " root "/TAGS"))	
+;; 	  ;;(message cmd)
+;; 	  (shell-command cmd)
+;; 	  (visit-project-tags)
+;; 	  (message (concat "tags built successfully for " root )))))
 
-(defun visit-project-tags ()
-  (interactive)  
-  (let ((tags-file (concat (replace-regexp-in-string "/$" "" (projectile-project-root)) "/TAGS")))
-	(message (concat "Loading: " tags-file))
-    (visit-tags-table tags-file)
-    (message (concat "Loaded " tags-file))))
+;; (defun visit-project-tags ()
+;;   (interactive)  
+;;   (let ((tags-file (concat (replace-regexp-in-string "/$" "" (projectile-project-root)) "/TAGS")))
+;; 	(message (concat "Loading: " tags-file))
+;;     (visit-tags-table tags-file)
+;;     (message (concat "Loaded " tags-file))))
 
 ;;https://github.com/raxod502/straight.el/issues/262
 ;; Inspired by `magit-version'
@@ -530,6 +526,11 @@ If you omit CLOSE, it will reuse OPEN."
   :init
   (when (string-equal system-type "windows-nt")
 	(setq tramp-default-method "plink")))
+;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/nginx/sites-enabled/default")
+;;(find-file "/plink:cbean@192.168.100.145|sudo:localhost:/etc/riemann/riemann.config")
+;;(find-file "/plink:cbean@192.168.100.145:/opt/")
+;;(find-file "/plink:cbean@192.168.100.144:/ciee/")
+;;(find-file "/plink:cbean@192.168.100.144|sudo:localhost:/ciee/www/test_api/api.py")
 
 (use-package selected
   :diminish selected-minor-mode
@@ -541,12 +542,13 @@ If you omit CLOSE, it will reuse OPEN."
 			 ("x" . cua-cut-region)
 			 ;;("u" . upcase-region)
 			 ;;("d" . downcase-region)
-			 ("w" . count-words-region)
-			 ("m" . apply-macro-to-region-lines)
+			 ;;("w" . count-words-region)
+			 ;;("m" . apply-macro-to-region-lines)
 			 ("k" . comment-region)
 			 ("u" . uncomment-region)
-			 :map selected-org-mode-map
-			 ("t" . org-table-convert-region))
+			 ;;:map selected-org-mode-map
+			 ;;("t" . org-table-convert-region))
+			 )
   (global-selected-minor-mode t))
 
 ;;;https://github.com/justbur/emacs-which-key
@@ -1083,13 +1085,13 @@ If you omit CLOSE, it will reuse OPEN."
  '(("j" find-file-other-window "other window")
    ("b" (lambda (_) (interactive) (counsel-bookmark)) "bookmark")))
 
-
 ;;https://stackoverflow.com/questions/29816326/how-to-show-path-to-file-in-the-emacs-mode-line
 (setq frame-title-format
-      '(buffer-file-name "%b - %f" ; File buffer
-						 (dired-directory dired-directory ; Dired buffer
-										  (revert-buffer-function "%b" ; Buffer Menu
-																  ("%b - Dir: " default-directory))))) ; Plain buffer
+      '(buffer-file-name "%b - %f"					; File buffer
+        (dired-directory dired-directory			; Dired buffer
+		  (revert-buffer-function "%b"				; Buffer Menu
+			("%b - Dir: " default-directory)))))	; Plain buffer
+
 (server-start)
 
 (use-package diminish
@@ -1110,3 +1112,7 @@ If you omit CLOSE, it will reuse OPEN."
 ;;   (diminish 'undo-tree-mode)
 ;;   (diminish 'which-key-mode))
 
+(require 'ansi-color)
+(defun display-ansi-colors ()
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
