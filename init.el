@@ -1,4 +1,4 @@
-(prefer-coding-system 'utf-8)
+ (prefer-coding-system 'utf-8)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -24,9 +24,9 @@
  '(org-clock-report-include-clocking-task t)
  '(org-mouse-1-follows-link nil)
  '(org-support-shift-select t)
- '(package-selected-packages
-   (quote
-	(markdown-mode yaml-mode expand-region origami origami-mode key-chord js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
+ ;;'(package-selected-packages
+ ;;  (quote
+ ;;	(markdown-mode yaml-mode expand-region origami origami-mode key-chord js2-mode csharp-mode csharp yasnippet which-key web-mode use-package undo-tree try smex projectile powershell multiple-cursors hydra dumb-jump counsel company clojure-mode back-button ag ace-window ace-jump-mode)))
  '(recentf-menu-before "Open File...")
  '(scroll-error-top-bottom nil)
  '(set-mark-command-repeat-pop nil)
@@ -45,6 +45,23 @@
  '(org-clock-overlay ((t (:background "dim gray" :foreground "white"))))
  '(region ((t (:background "#666" :foreground "#f6f3e8"))))
  '(show-paren-match ((t (:background "gray21")))))
+
+
+
+(let ((bootstrap-file (concat user-emacs-directory "straight/repos/straight.el/bootstrap.el"))
+      (bootstrap-version 3))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+
+(straight-use-package 'use-package)
+
 
 (put 'upcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
@@ -75,20 +92,20 @@
   (require 'gnutls)
   (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
 
-(require 'package)
+;;(require 'package)
 
 ;;https://emacs.stackexchange.com/questions/2969/is-it-possible-to-use-both-melpa-and-melpa-stable-at-the-same-time
-(setq package-archives
-	  '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-		("MELPA Stable" . "https://stable.melpa.org/packages/")
-		("MELPA"        . "https://melpa.org/packages/"))
-	  package-archive-priorities
-	  '(("MELPA Stable" . 10)
-		("GNU ELPA"     . 5)
-		("MELPA"        . 0)))
+;;(setq package-archives
+;;	  '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+;;		("MELPA Stable" . "https://stable.melpa.org/packages/")
+;;		("MELPA"        . "https://melpa.org/packages/"))
+;;	  package-archive-priorities
+;;	  '(("MELPA Stable" . 10)
+;;		("GNU ELPA"     . 5)
+;;		("MELPA"        . 0)))
 
 ;;(setq package-enable-at-startup nil) ;;do we need this?
-(package-initialize)
+;;(package-initialize)
 
 (when (string-equal system-type "windows-nt")
   (add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
@@ -105,11 +122,11 @@
           (string-equal system-type "darwin"))
   (global-set-key [mouse-2] nil))
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+;;(unless (package-installed-p 'use-package)
+;;  (package-refresh-contents)
+;;  (package-install 'use-package))
 
-(require 'use-package)
+;;(require 'use-package)
 
 ;;Turn on column number
 (column-number-mode 1)
@@ -306,30 +323,81 @@ If point was already at that position, move point to beginning of line."
   (interactive "cZap backwards to char: ")
   (zap-up-to-char -1 char))
 
+
+(use-package git
+  :straight t)
+
+(use-package org
+  :straight t
+
+  :config
+
+  ;;https://github.com/raxod502/radian/issues/410
+  ;; The following is a temporary hack until straight.el supports
+  ;; building Org, see:
+  ;;
+  ;; * https://github.com/raxod502/straight.el/issues/211
+  ;; * https://github.com/raxod502/radian/issues/410
+  ;;
+  ;; There are three things missing from our version of Org: the
+  ;; functions `org-git-version' and `org-release', and the feature
+  ;; `org-version'. We provide all three of those ourself, therefore.
+
+  (defun org-git-version ()
+	"The Git version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+	(require 'git)
+	(let ((git-repo (expand-file-name
+					 "straight/repos/org/" user-emacs-directory)))
+	  (string-trim
+	   (git-run "describe"
+				"--match=release\*"
+				"--abbrev=6"
+				"HEAD"))))
+
+  (defun org-release ()
+	"The release version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+	(require 'git)
+	(let ((git-repo (expand-file-name
+					 "straight/repos/org/" user-emacs-directory)))
+	  (string-trim
+	   (string-remove-prefix
+		"release_"
+		(git-run "describe"
+				 "--match=release\*"
+				 "--abbrev=0"
+				 "HEAD")))))
+  )
+(use-package diminish
+  :straight t)
+
 (use-package counsel
   :defer t
   :bind ("C-x rf" . counsel-recentf)
-  :ensure t)
+  :straight t)
 
 (use-package ivy
-  :ensure t
+  :straight t
   :diminish ivy-mode)
 
 ;;http://cestlaz.github.io/posts/using-emacs-6-swiper/
 (use-package swiper
-  :ensure try
+  :straight try
   :bind ("C-f" . swiper)
   :config
   (ivy-mode 1)
-  (define-key ivy-minibuffer-map (kbd "C-f") 'ivy-previous-line-or-history)
-  (define-key ivy-minibuffer-map (kbd "<next>") 'ivy-scroll-up-command)
-  (define-key ivy-minibuffer-map (kbd "<prior>") 'ivy-scroll-down-command)
+  (define-key ivy-minibuffer-map (kbd "C-f") 'ivy-previous-history-element)
   (define-key ivy-minibuffer-map (kbd "<escape>") 'minibuffer-keyboard-quit)
-  ;; (define-key ivy-minibuffer-map (kbd "C-g") 'minibuffer-keyboard-quit)
+  ;;(define-key ivy-minibuffer-map (kbd "<left>") 'ivy-backward-delete-char)
+  (define-key ivy-minibuffer-map (kbd "C-n") 'ivy-next-line)
+  (define-key ivy-minibuffer-map (kbd "C-p") 'ivy-previous-line)
+  ;;remember c-o c-o
+  
   )
 
 (use-package yasnippet
-  :ensure t
+  :straight t
   :defer 5
   :diminish (yas-minor-mode . "")
   :config (yas-global-mode 1))
@@ -339,12 +407,12 @@ If point was already at that position, move point to beginning of line."
   :diminish (hi-lock-mode . ""))
 
 (use-package expand-region
-  :ensure t
+  :straight t
   :defer t)
 
 (use-package undo-tree
-  :ensure t
-  ;;:diminish undo-tree-mode
+  :straight t
+  :diminish undo-tree-mode
   :bind (("C-z" . undo-tree-undo)
    		 ("C-y" . undo-tree-redo))
   :init
@@ -353,10 +421,11 @@ If point was already at that position, move point to beginning of line."
 	;;http://www.star.bris.ac.uk/bjm/bjm-starter-init.el
     (defalias 'redo 'undo-tree-redo)
     (defalias 'undo 'undo-tree-undo)
+	(define-key undo-tree-map (kbd "C-_") nil)
     ))
 
 (use-package web-mode
-  :ensure t)
+  :straight t)
 
 (use-package tramp
   :defer t
@@ -384,7 +453,7 @@ If point was already at that position, move point to beginning of line."
 
 ;;;https://github.com/justbur/emacs-which-key
 (use-package which-key
-  :ensure t
+  :straight t
   :diminish which-key-mode
   :config (which-key-mode))
 
@@ -398,28 +467,28 @@ If point was already at that position, move point to beginning of line."
   (add-hook 'clojure-mode-hook
 			(lambda ()
 			  (origami-mode 1)))
-  :ensure t)
+  :straight t)
 
 (use-package hydra
-  :ensure t)
+  :straight t)
 
 (use-package company
-  :ensure t
+  :straight t
   ;;:defer t
   :diminish company-mode
   :config (global-company-mode))
 
-(use-package back-button
-  :ensure t
-  :diminish back-button-mode
-  :config
-  (back-button-mode 1))
+;; (use-package back-button
+;;  :straight t
+;;   :diminish back-button-mode
+;;   :config
+;;   (back-button-mode 1))
 
 (use-package multiple-cursors
-  :ensure t)
+  :straight t)
 
 (use-package csharp-mode
-  :ensure t
+  :straight t
   :config  
   (add-hook 'csharp-mode-hook
 			(lambda ()
@@ -439,7 +508,7 @@ If point was already at that position, move point to beginning of line."
 		 (find-tag (find-tag-default)))))
 
 (use-package powershell
-  :ensure t
+  :straight t
   :init
   (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
   (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))
@@ -459,13 +528,13 @@ If point was already at that position, move point to beginning of line."
 			  ("M-," . dumb-jump-back)
 			  ))
 (use-package avy
-  :ensure t
+  :straight t
   :bind (("M-c" . avy-goto-word-1)
 		 ("M-C" . avy-goto-word-1-above))
   :defer t)
 
 (use-package ace-window
-  :ensure t
+  :straight t
   :bind (("M-O" . ace-window)
 		 ("M-o" . ace-window))
   :defer t)
@@ -473,7 +542,7 @@ If point was already at that position, move point to beginning of line."
 ;;https://github.com/abo-abo/swiper/issues/881
 ;;put most recent commands at the top
 (use-package smex
-  :ensure t
+  :straight t
   ;; :config
   ;; ;;stolen from emacs-starter-kit
   ;; (setq smex-save-file (concat user-emacs-directory ".smex-items"))
@@ -482,7 +551,7 @@ If point was already at that position, move point to beginning of line."
   )
 
 (use-package dumb-jump
-  :ensure t
+  :straight t
   :config
 
   ;;Add Powershell jumping
@@ -513,9 +582,11 @@ If point was already at that position, move point to beginning of line."
 
 ;;(load "~/.emacs.d/lisp/org-customizations")
 ;;(use-package org-customizations)
+(load "~/src/enchive/enchive-mode.el")
+(setq enchive-program-name "~/src/enchive/enchive")
 
 (use-package org
-  :ensure t
+  ;;:straight t
   :defer t
   :init
   ;;https://emacs.stackexchange.com/questions/26287/move-to-the-beginning-of-a-heading-smartly-in-org-mode/26340
@@ -573,7 +644,7 @@ If point was already at that position, move point to beginning of line."
 				str (concat str "__")))
 		(concat str "__ "))))
   (advice-add 'org-clocktable-indent-string :override #'cb-org-clocktable-indent-string)
-    
+  
   (defun cb-add-gpg (s)
 	(if cb-encrypt-org
 		(format "%s.gpg" s)
@@ -616,7 +687,7 @@ If point was already at that position, move point to beginning of line."
   																		  ;;(org-agenda-entry-types '(:deadline)) ;; this entry excludes :scheduled
   																		  (org-deadline-warning-days 0)))
 		  ("w" "Asdf" todo "WAITING|FOLLOWUP" (
-																		(org-agenda-todo-ignore-scheduled nil)))))
+											   (org-agenda-todo-ignore-scheduled nil)))))
 
   ;;(setq org-agenda-todo-ignore-scheduled 'future)
   ;;(setq org-agenda-todo-ignore-scheduled nil)
@@ -718,19 +789,19 @@ If point was already at that position, move point to beginning of line."
   								(setq-local hs-hide-all-non-comment-function 'ttn-hs-hide-level-2))))
 
 (use-package ag
-  :ensure t)
+  :straight t)
 
 (use-package projectile
-  :ensure t
+  :straight t
   :config (setq projectile-completion-system 'ivy)
   (projectile-global-mode))
 
 (use-package magit
-  :ensure t
+  :straight t
   :defer t)
 
 (use-package js2-mode
-  :ensure t)
+  :straight t)
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
@@ -788,7 +859,7 @@ If point was already at that position, move point to beginning of line."
 ;;(bind-key* "C-_" 'back-button-global-forward)
 ;;(bind-key* "C--" 'back-button-global-backward)
 
-;(bind-key* "C-l" 'goto-line)
+										;(bind-key* "C-l" 'goto-line)
 
 ;; (bind-keys :prefix-map vs-prefix-map
 ;; 		   :prefix "C-k"
@@ -825,7 +896,7 @@ If point was already at that position, move point to beginning of line."
 (defun show-buffer-path ()
   "Print the current buffer path in the M-X window."
   (interactive)
-    (print (buffer-file-name)))
+  (print (buffer-file-name)))
 
 ;;http://emacsredux.com/blog/2013/03/27/copy-filename-to-the-clipboard/
 (defun copy-file-name-to-clipboard ()
@@ -870,12 +941,12 @@ If point was already at that position, move point to beginning of line."
     (message (concat "Loaded " tags-file))))
 
 ;; (use-package key-chord
-;;   :ensure t
+;;   :straight t
 ;;   :config
 ;;   (key-chord-define-global "fg" 'avy-goto-char))
 
 (use-package origami
-  :ensure t
+  :straight t
   :config
   (add-to-list 'origami-parser-alist '(powershell-mode . origami-c-style-parser))
   ;; (global-set-key (kbd "<kp-add>") 'origami-open-node-recursively)
@@ -897,16 +968,16 @@ If point was already at that position, move point to beginning of line."
 		   ("<kp-subtract>" . hs-hide-block))
 
 (use-package yaml-mode
-  :ensure t)
+  :straight t)
 
 (use-package markdown-mode
-  :ensure t)
+  :straight t)
 
 ;;builtin
 ;; (use-package winner-mode)
 
 ;; (use-package workgroups-mode
-;;   :ensure t)
+;;   :straight t)
 
 ;;https://superuser.com/questions/389303/how-can-i-write-a-emacs-command-that-inserts-a-text-with-a-variable-string-at-th
 ;;https://mail.google.com/mail/u/0/#inbox/15d1aa7b18f8842c => https://mail.google.com/mail/u/0/#all/15d1aa7b18f8842c
@@ -962,13 +1033,13 @@ If you omit CLOSE, it will reuse OPEN."
 
 ;;https://stackoverflow.com/questions/9688748/emacs-comment-uncomment-current-line
 (defun comment-or-uncomment-region-or-line ()
-    "Comments or uncomments the region or the current line if there's no active region."
-    (interactive)
-    (let (beg end)
-        (if (region-active-p)
-            (setq beg (region-beginning) end (region-end))
-            (setq beg (line-beginning-position) end (line-end-position)))
-        (comment-or-uncomment-region beg end)))
+  "Comments or uncomments the region or the current line if there's no active region."
+  (interactive)
+  (let (beg end)
+	(if (region-active-p)
+		(setq beg (region-beginning) end (region-end))
+	  (setq beg (line-beginning-position) end (line-end-position)))
+	(comment-or-uncomment-region beg end)))
 (bind-key "M-;" 'comment-or-uncomment-region-or-line)
 
 (defun copy-file-name-to-clipboard ()
@@ -987,3 +1058,52 @@ If you omit CLOSE, it will reuse OPEN."
    ("b" (lambda (_) (interactive) (counsel-bookmark)) "bookmark")))
 
 
+(use-package golden-ratio
+  :straight t
+  :diminish
+  :config
+  (define-advice select-window (:after (window &optional no-record) golden-ratio-resize-window)
+    (golden-ratio)
+    nil))
+
+(use-package beacon
+  :straight t)
+
+(use-package goto-chg
+  :bind
+  (("C--" . goto-last-change)
+   ("C-_" . goto-last-change-reverse))
+  :straight t)
+
+(use-package macrostep
+  :straight t)
+
+(use-package git-timemachine
+  :straight t)
+
+
+;;(mapcar 'message (map-keys straight--recipe-cache) ) ; (4 5 6)
+
+;;list all packages and their versions
+(let ((magit-repository-directories
+       (list (cons (straight--repos-dir) 1))))
+  (magit-list-repositories))
+
+;;https://github.com/raxod502/straight.el/issues/262
+(defun chunyang-straight-git-version (package)
+  (interactive
+   (list
+    (straight--select-package "Package" nil 'installed)))
+  (let ((recipe (gethash package straight--recipe-cache))
+        version)
+    (straight--with-plist recipe
+        (local-repo type)
+      (when (and (eq type 'git) local-repo)
+        (let ((default-directory (straight--repos-dir local-repo)))
+          (setq version (or (magit-git-string "describe" "--tags" "--dirty")
+                            (magit-rev-parse "--short" "HEAD")))
+          (message "%s %s" (upcase-initials package) version)
+          version)))))
+
+;;(chunyang-straight-git-version "magit")
+;;     => "2.11.0-584-g4eb84d44"
