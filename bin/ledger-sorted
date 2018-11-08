@@ -1,0 +1,4 @@
+#! /bin/bash
+#special version for emacs ledger-binary-path
+ruby ~/src/scripts/sort-ledger.rb | ledger "$@"
+
