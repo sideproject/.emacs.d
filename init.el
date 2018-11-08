@@ -786,40 +786,88 @@ If you omit CLOSE, it will reuse OPEN."
   :config
   (add-to-list 'origami-parser-alist '(powershell-mode . origami-c-style-parser)))
 
-(when (file-exists-p "~/src/ledger/lisp/ledger-mode.el")
+(when (file-exists-p "~/src/ledger/lisp/ledger-mode.el")  
   (add-to-list 'load-path "~/src/ledger/lisp")
 
   (use-package ledger-mode
-	:config
-	(add-to-list 'auto-mode-alist '("\\.ledger\\'" . ledger-mode))
-	(add-hook 'ledger-mode-hook (lambda ()
-								  (progn
-									;;(print "1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-									;;(make-local-variable 'jit-lock-chunk-size)
-									(setq jit-lock-chunk-size 4096); was 500 -- increase to handle large Budget block at the top of the file
-									(setq indent-tabs-mode nil)
-									;;(print "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
-									)
-								  nil 'make-it-local))
+    :init
+     (setq ledger-reports
+           (quote
+            (("bal" "eledger bal")
+             ("reg" "eledger reg")
+             ("payee" "eledger reg @%(payee) and not expenses and not income")
+             ("account" "eledger reg %(account)"))))
+     
+    :config
+    (add-to-list 'auto-mode-alist '("\\.ledger\\'" . ledger-mode))
+    (add-hook 'ledger-mode-hook (lambda ()
+                                  (progn
+                                    ;;(print "1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                                    ;;(make-local-variable 'jit-lock-chunk-size)
+                                    (setq jit-lock-chunk-size 4096); was 500 -- increase to handle large Budget block at the top of the file
+                                    (setq indent-tabs-mode nil)
+                                    ;;(print "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
+                                    )
+                                  nil 'make-it-local))
 
-	;;remove cleared * if there is one when copying a transaction
-	(defadvice ledger-copy-transaction-at-point (after say-ouch activate)
-	  ;;(print "AAAAAAAAAAAAAAAAAAAAAAA")
-	  (ledger-navigate-beginning-of-xact)
-	  (if (string= "cleared" (ledger-transaction-state))
-		  (ledger-toggle-current)))
+    (defun ledger-remove-check-number ()
+      (interactive)
+      (let* ((beg (line-beginning-position))
+             (end (line-end-position)))
+        (save-excursion
+          (narrow-to-region beg end)
+          (replace-regexp "(.*)" "()")
+          (whitespace-cleanup)
+          (widen)
+          (ledger-narrow-to-account))))
 
-	(defun ledger-narrow-to-account ()
-	  (interactive)
-	  (let ((i 0) (j 0))
-		(search-forward ";----")
-		(beginning-of-line)
-		(setq i (point))
-		(search-backward ";----")
-		(beginning-of-line)
-		(setq j (point))
-		(narrow-to-region i j)))))
+    ;; (defun current-line-empty-p ()
+    ;;   (save-excursion
+    ;;  (beginning-of-line)
+    ;;  (looking-at "[[:space:]]*$")))
 
+    (defun current-line-spaces-p ()
+      (save-excursion
+        (beginning-of-line)
+        (looking-at "[[:space:]]*$")))
+    
+    (setq ledger-binary-path "/home/cbean/.emacs.d/bin/ledger-sorted")
+
+    ;;remove cleared * if there is one when copying a transaction
+    (defadvice ledger-copy-transaction-at-point (after say-ouch activate)
+      ;;(print "AAAAAAAAAAAAAAAAAAAAAAA")
+      (ledger-navigate-beginning-of-xact)
+      (if (string= "cleared" (ledger-transaction-state))
+          (ledger-toggle-current))
+      (ledger-navigate-beginning-of-xact)
+      (ledger-remove-check-number)
+      (ledger-navigate-end-of-xact)
+      (if (current-line-spaces-p)
+          (kill-whole-line))
+      (insert "\n")
+      ;;(previous-line)
+      (forward-line -1)
+      (ledger-navigate-beginning-of-xact)
+      (recenter))
+    
+    ;;override because ledger-xact-payee always returns nil and regexp-quote can't handle it
+    (defun ledger-report-payee-format-specifier ()
+      ;;(ledger-read-string-with-default "Payee" (regexp-quote (ledger-xact-payee))))
+      (ledger-read-string-with-default "Payee"  (ledger-xact-payee)))
+
+    (defun ledger-narrow-to-account ()
+      (interactive)
+      (let ((i 0) (j 0))
+        (search-forward ";----")
+        (beginning-of-line)
+        (setq i (point))
+        
+        (search-backward ";----")
+        (beginning-of-line)
+        (setq j (point))
+        
+        (narrow-to-region i j)
+        (end-of-buffer)))))
 
 ;;Mac specific stuff
 (when (string-equal system-type "darwin")
