@@ -373,19 +373,23 @@ If point was already at that position, move point to beginning of line."
 		  (message "%s %s" (upcase-initials package) version)
 		  version)))))
 
+
 ;;(chunyang-straight-git-version "magit")
 ;;=> "2.11.0-584-g4eb84d44"
 
 ;;(map-keys straight--recipe-cache)
+
 ;;https://www.gnu.org/software/emacs/manual/html_node/eintr/Every.html
 (defun print-elements-recursively (list)
   "Print each element of LIST on a line of its own.
 	 Uses recursion."
   (when list                            ; do-again-test
-	(message (car list))              ; body
+	(chunyang-straight-git-version (car list))
+	;;(message (car list))              ; body
 	(print-elements-recursively     ; recursive call
-	 (cdr list))))                  ; next-step-expression
-
+	 (cdr list)))                  ; next-step-expression
+  )
+;; Run m-x magit-version to load magit before using
 ;;(print-elements-recursively (map-keys straight--recipe-cache))
 
 ;;https://www.emacswiki.org/emacs/SurroundRegion
