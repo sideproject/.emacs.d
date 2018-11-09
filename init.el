@@ -883,6 +883,7 @@ If you omit CLOSE, it will reuse OPEN."
   (diminish 'company-mode)
   (diminish 'undo-tree-mode)
   (diminish 'which-key-mode)
+  (diminish 'golden-ratio-mode)
   :straight t)
 
 (require 'ansi-color)
