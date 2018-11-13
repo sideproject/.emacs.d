@@ -602,20 +602,13 @@ If you omit CLOSE, it will reuse OPEN."
 (use-package ace-window
   :commands ace-window
   :straight t
-  ;; :bind (("M-O" . ace-window)
-  ;;          ("M-o" . ace-window))
+  :bind ("C-x o" . ace-window)
   :init
-  (if (display-graphic-p)
-	  (progn
-		(bind-key "M-O" 'ace-window)
-		(bind-key "M-o" 'ace-window))
-	(bind-key "C-x o" 'ace-window)))
+  (when (display-graphic-p)
+	(progn
+	  (bind-key "M-O" 'ace-window)
+	  (bind-key "M-o" 'ace-window))))
 
-;(use-package ace-window
-;  :straight t
-;  :bind (("M-O" . ace-window)
-;         ("M-o" . ace-window))
-;  :defer t)
 
 ;;https://github.com/abo-abo/swiper/issues/881
 ;;put most recent commands at the top
