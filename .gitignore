@@ -16,4 +16,5 @@ url/
 var/
 .cask/
 .*.*
-straight
+straight/
+server/
