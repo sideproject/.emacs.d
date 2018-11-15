@@ -70,6 +70,12 @@
 
 (load "org-table-comment")
 
+;;macports puts cert.pem in /opt/local
+;;https://andatche.com/articles/2012/02/fixing-ssl-ca-certificates-with-openssl-from-macports/
+(when (string-equal system-type "darwin")
+  (require 'gnutls)
+  (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
+
 (let ((bootstrap-file (concat user-emacs-directory "straight/repos/straight.el/bootstrap.el"))
 	  (bootstrap-version 3))
   (unless (file-exists-p bootstrap-file)
@@ -80,11 +86,6 @@
 	  (goto-char (point-max))
 	  (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
-
-;;macports puts cert.pem in /opt/local
-(when (string-equal system-type "darwin")
-  (require 'gnutls)
-  (add-to-list 'gnutls-trustfiles "/opt/local/etc/openssl/cert.pem"))
 
 (when (string-equal system-type "windows-nt")
   (add-to-list 'exec-path "C:/Program Files (x86)/Aspell/bin/")
