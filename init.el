@@ -954,6 +954,13 @@ If point was already at that position, move point to beginning of line."
 									)
 								  nil 'make-it-local))
 
+
+	;;override C-c C-c to toggle the whole transaction
+	(bind-keys :map ledger-mode-map
+			   ("C-c C-c" . ledger-toggle-current-transaction)
+			   ;;("C-c C-c" . ledger-toggle-current)
+			   )
+
 	(defun ledger-remove-check-number ()
 	  (interactive)
 	  (let* ((beg (line-beginning-position))
