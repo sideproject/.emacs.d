@@ -936,10 +936,9 @@ If point was already at that position, move point to beginning of line."
 	:init
 	 (setq ledger-reports
 		   (quote
-			(("bal" "eledger bal")
+			(("bal" "eledger bal assets liabilities")
 			 ("reg" "eledger reg")
-			 ("payee" "eledger reg @%(payee) and not
- expenses and not income")
+			 ("payee" "eledger reg @%(payee) and not expenses and not income")
 			 ("account" "eledger reg %(account)"))))
 	 
 	:config
@@ -958,6 +957,9 @@ If point was already at that position, move point to beginning of line."
 	;;override C-c C-c to toggle the whole transaction
 	(bind-keys :map ledger-mode-map
 			   ("C-c C-c" . ledger-toggle-current-transaction)
+			   ("M-n" . ledger-toggle-and-next)
+			   ("C-<up>" . ledger-navigate-prev-xact-or-directive)
+			   ("C-<down>" . ledger-navigate-next-xact-or-directive)
 			   ;;("C-c C-c" . ledger-toggle-current)
 			   )
 
@@ -1005,6 +1007,12 @@ If point was already at that position, move point to beginning of line."
 	(defun ledger-report-payee-format-specifier ()
 	  ;;(ledger-read-string-with-default "Payee" (regexp-quote (ledger-xact-payee))))
 	  (ledger-read-string-with-default "Payee"  (ledger-xact-payee)))
+
+
+	(defun ledger-toggle-and-next ()
+	  (interactive)
+	  (ledger-toggle-current)
+	  (ledger-navigate-next-xact-or-directive))
 
 	(defun ledger-narrow-to-account ()
 	  (interactive)
