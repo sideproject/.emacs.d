@@ -660,20 +660,21 @@ If point was already at that position, move point to beginning of line."
 			  ;;(which-function-mode 0);;turn off current function in status bar
 			  (org-bullets-mode 1)))
 
-  ;;https://stackoverflow.com/questions/13340616/assign-ids-to-every-entry-in-org-mode/16247032#16247032
-  (defun my/org-add-ids-to-headlines-in-file ()
-	"Add ID properties to all headlines in the current file which do not already have one."
-	(interactive)
-	(org-map-entries 'org-id-get-create))
-
-  ;; (defun my/org-set-category-to-id ()
+  ;; ;;https://stackoverflow.com/questions/13340616/assign-ids-to-every-entry-in-org-mode/16247032#16247032
+  ;; (defun my/org-add-ids-to-headlines-in-file ()
+  ;; 	"Add ID properties to all headlines in the current file which do not already have one."
   ;; 	(interactive)
-  ;; 	(org-element-property "CATEGORY"))
+  ;; 	(org-map-entries 'org-id-get-create))
+
+  ;; ;; (defun my/org-set-category-to-id ()
+  ;; ;; 	(interactive)
+  ;; ;; 	(org-element-property "CATEGORY"))
   
-  (when cb-add-org-ids
-	(add-hook 'org-mode-hook
-			  (lambda ()
-				(add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))))
+  ;; (when cb-add-org-ids
+  ;; 	(add-hook 'org-mode-hook
+  ;; 			  (lambda ()
+  ;; 				(add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local))))
+  )
 
 (use-package hydra
   :config
@@ -884,6 +885,9 @@ If point was already at that position, move point to beginning of line."
 ;;   :ensure t
 ;;   :config
 ;;   (key-chord-define-global "fg" 'avy-goto-char))
+
+
+(use-package remind-conf-mode)
 
 (use-package origami
   :ensure t
