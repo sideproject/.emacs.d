@@ -887,7 +887,10 @@ If point was already at that position, move point to beginning of line."
 ;;   (key-chord-define-global "fg" 'avy-goto-char))
 
 
-(use-package remind-conf-mode)
+(use-package remind-conf-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.reminders\\'" . remind-conf-mode))
+  )
 
 (use-package origami
   :ensure t
@@ -940,9 +943,9 @@ If point was already at that position, move point to beginning of line."
 	:init
 	 (setq ledger-reports
 		   (quote
-			(("bal" "eledger bal assets liabilities")
-			 ("reg" "eledger reg")
-			 ("payee" "eledger reg @%(payee) and not expenses and not income")
+			(("bal" "~/local/bin/eledger bal assets liabilities")
+			 ("reg" "~/local/bin/eledger reg")
+			 ("payee" "~/local/bin/eledger reg @%(payee) and not expenses and not income")
 			 ("account" "eledger reg %(account)"))))
 	 
 	:config
