@@ -141,17 +141,35 @@
 ;;save minibuffer history
 (savehist-mode 1)
 
-(setq backup-directory-alist `(("." . "~/.saves/")))
-(setq auto-save-file-name-transforms `((".*" "~/.saves/" t)))
+(setq backup-directory-alist `(("" . "~/.saves/")))
+;;(setq auto-save-file-name-transforms `((".*" "~/.saves/" t)))
 ;;auto-save-list-file-prefix ;;=> "~/.emacs.d/auto-save-list/.saves-"
 (setq create-lockfiles nil)
 
 (setq backup-by-copying t) ;don't clobber symlinks
 (setq delete-old-versions t
-      kept-new-versions 6
-      kept-old-versions 2
+      kept-new-versions 10
+      kept-old-versions 5
       version-control t
       vc-make-backup-files t) ;; Make backups of files, even when they're in version control
+
+;;https://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files
+(defun force-backup-of-buffer ()
+  ;; Make a special "per session" backup at the first save of each
+  ;; emacs session.
+  (when (not buffer-backed-up)
+    ;; Override the default parameters for per-session backups.
+    (let ((backup-directory-alist '(("" . "~/.saves/per-session")))
+          (kept-new-versions 3))
+      (backup-buffer)))
+  ;; Make a "per save" backup on each save.  The first save results in
+  ;; both a per-session and a per-save backup, to keep the numbering
+  ;; of per-save backups consistent.
+  (let ((buffer-backed-up nil))
+    (backup-buffer)))
+
+(add-hook 'before-save-hook  'force-backup-of-buffer)
+
 
 ;;http://www.emacswiki.org/emacs/AlarmBell
 ;;(setq visible-bell 1)           ;; turn on visual bell
@@ -441,14 +459,12 @@ If you omit CLOSE, it will reuse OPEN."
 
 (use-package ivy
   :straight (:host github :repo "sideproject/swiper" :branch "navigation"
-                   :files (:defaults
-                           (:exclude "swiper.el" "counsel.el" "ivy-hydra.el")
-                           "doc/ivy-help.org"))
+                   :files (:defaults (:exclude "swiper.el" "counsel.el" "ivy-hydra.el") "doc/ivy-help.org" "ivy-pkg.el"))
   :diminish ivy-mode)
 
 ;;http://cestlaz.github.io/posts/using-emacs-6-swiper/
 (use-package swiper
-  :straight (:host github :repo "sideproject/swiper" :branch "navigation" :files ("swiper.el"))
+  :straight (:host github :repo "sideproject/swiper" :branch "navigation" :files ("swiper.el" "swiper-pkg.el"))
   :bind ("C-f" . swiper)
   :config
   (ivy-mode 1)
@@ -733,6 +749,12 @@ If you omit CLOSE, it will reuse OPEN."
   :straight t)
 
 (use-package deadgrep
+  :straight t)
+
+(use-package wgrep
+  :straight t)
+
+(use-package wgrep-ag
   :straight t)
 
 (use-package delight
